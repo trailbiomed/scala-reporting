@@ -1,0 +1,37 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # required to publish to GitHub Packages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # sbt-dynver needs tags
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: sbt
+
+      - uses: sbt/setup-sbt@v1
+
+      - name: Show derived version
+        run: sbt 'show ThisBuild / version'
+
+      - name: Publish sharedJVM + jvm (browser bundle included via resource gen)
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: sbt -J-Xmx3g "sharedJVM/publish" "jvm/publish"
