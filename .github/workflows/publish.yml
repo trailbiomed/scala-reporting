@@ -44,6 +44,6 @@ jobs:
 
       - name: Publish sharedJVM + jvm (browser bundle included via resource gen)
         env:
-          GITHUB_ACTOR: x-access-token
+          GITHUB_ACTOR: trailbiomed-packages-bridge[bot]
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: sbt -J-Xmx3g "sharedJVM/publish" "jvm/publish"
