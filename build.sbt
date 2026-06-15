@@ -35,14 +35,26 @@ ThisBuild / publishMavenStyle := true
 ThisBuild / publishTo := Some(
   "GitHub Package Registry" at s"https://maven.pkg.github.com/$ghOwner/$ghRepoName"
 )
-ThisBuild / resolvers += "GitHub Package Registry (scala-lui)" at
-  s"https://maven.pkg.github.com/$ghOwner/scala-lui"
+
 ThisBuild / credentials += Credentials(
   "GitHub Package Registry",
   "maven.pkg.github.com",
   sys.env.getOrElse("GITHUB_ACTOR", "x-access-token"),
   sys.env.getOrElse("GITHUB_TOKEN", "")
 )
+
+ThisBuild / csrConfiguration ~= { cfg =>
+  val token = sys.env.getOrElse("LUI_READ_TOKEN", sys.env.getOrElse("GITHUB_TOKEN", ""))
+  val actor = sys.env.getOrElse("LUI_READ_ACTOR", sys.env.getOrElse("GITHUB_ACTOR", "x-access-token"))
+  val auth  =
+    if (token.nonEmpty) Some(lmcoursier.definitions.Authentication(actor).withPassword(token))
+    else None
+  val luiRepo = lmcoursier.definitions.MavenRepository(
+    s"https://maven.pkg.github.com/$ghOwner/scala-lui",
+    authentication = auth
+  )
+  cfg.withResolvers(cfg.resolvers :+ luiRepo)
+}
 
 val jsoniterVersion = "2.30.4"
 val laminarVersion  = "17.1.0"

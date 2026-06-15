@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: write   # needed by secrets.GITHUB_TOKEN to publish to this repo's packages
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,9 +27,11 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
-      # One token, two repos: read scala-lui (resolver) + write scala-reporting (publish).
-      # Default GITHUB_TOKEN cannot read sibling-repo packages.
-      - name: Mint cross-repo packages token
+      # App installation token to READ scala-lui (sibling repo, same org).
+      # The default GITHUB_TOKEN cannot read sibling-repo packages, and the App
+      # token cannot WRITE to GitHub Packages Maven. The build wires them up
+      # separately: LUI_READ_TOKEN → scala-lui resolver, GITHUB_TOKEN → publish.
+      - name: Mint cross-repo read token (scala-lui)
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
@@ -37,13 +40,14 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: |
             scala-lui
-            scala-reporting
 
       - name: Show derived version
         run: sbt 'show ThisBuild / version'
 
       - name: Publish sharedJVM + jvm (browser bundle included via resource gen)
         env:
-          GITHUB_ACTOR: trailbiomed-packages-bridge[bot]
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_ACTOR:   ${{ github.actor }}
+          GITHUB_TOKEN:   ${{ secrets.GITHUB_TOKEN }}
+          LUI_READ_ACTOR: trailbiomed-packages-bridge[bot]
+          LUI_READ_TOKEN: ${{ steps.app-token.outputs.token }}
         run: sbt -J-Xmx3g "sharedJVM/publish" "jvm/publish"

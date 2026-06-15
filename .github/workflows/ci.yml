@@ -40,14 +40,14 @@ jobs:
 
       - name: Compile shared + jvm + browser
         env:
-          GITHUB_ACTOR: trailbiomed-packages-bridge[bot]
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          LUI_READ_ACTOR: trailbiomed-packages-bridge[bot]
+          LUI_READ_TOKEN: ${{ steps.app-token.outputs.token }}
         run: sbt -J-Xmx3g "sharedJVM/compile" "sharedJS/compile" "browser/compile" "jvm/compile"
 
       - name: Link Scala.js bundle and run example
         env:
-          GITHUB_ACTOR: trailbiomed-packages-bridge[bot]
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          LUI_READ_ACTOR: trailbiomed-packages-bridge[bot]
+          LUI_READ_TOKEN: ${{ steps.app-token.outputs.token }}
         run: sbt -J-Xmx3g "browser/fullLinkJS" "example/run /tmp/sample-report.html"
 
       - name: Upload sample report
