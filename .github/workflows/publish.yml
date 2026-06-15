@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write   # required to publish to GitHub Packages
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,11 +26,24 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
+      # One token, two repos: read scala-lui (resolver) + write scala-reporting (publish).
+      # Default GITHUB_TOKEN cannot read sibling-repo packages.
+      - name: Mint cross-repo packages token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.LUI_READER_APP_ID }}
+          private-key: ${{ secrets.LUI_READER_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            scala-lui
+            scala-reporting
+
       - name: Show derived version
         run: sbt 'show ThisBuild / version'
 
       - name: Publish sharedJVM + jvm (browser bundle included via resource gen)
         env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: x-access-token
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: sbt -J-Xmx3g "sharedJVM/publish" "jvm/publish"
