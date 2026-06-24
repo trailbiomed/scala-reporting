@@ -7,3 +7,4 @@ metals.sbt
 .DS_Store
 project/project/
 project/target/
+.bsp/sbt.json

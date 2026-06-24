@@ -46,13 +46,6 @@ ThisBuild / credentials += Credentials(
   sys.env.getOrElse("GITHUB_TOKEN", "")
 )
 
-ThisBuild / credentials += Credentials(
-  "GitHub Package Registry",
-  "maven.pkg.github.com",
-  sys.env.getOrElse("LUI_READ_ACTOR", "x-access-token"),
-  sys.env.getOrElse("LUI_READ_TOKEN", "")
-)
-
 val jsoniterVersion = "2.30.4"
 val laminarVersion  = "17.1.0"
 val nsplVersion     = "0.18.0"

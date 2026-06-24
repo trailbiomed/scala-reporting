@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read    # scala-lui packages are on GH Packages; the default token reads public-repo packages
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,29 +26,16 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
-      # Mint an installation token that can read scala-lui from GitHub Packages.
-      # The default GITHUB_TOKEN is scoped to this repo only and cannot read
-      # packages owned by a sibling repo in the same org.
-      - name: Mint cross-repo packages token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.LUI_READER_APP_ID }}
-          private-key: ${{ secrets.LUI_READER_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: |
-            scala-lui
-
       - name: Compile shared + jvm + browser
         env:
-          LUI_READ_ACTOR: trailbiomed-packages-bridge[bot]
-          LUI_READ_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: sbt -J-Xmx3g "sharedJVM/compile" "sharedJS/compile" "browser/compile" "jvm/compile"
 
       - name: Link Scala.js bundle and run example
         env:
-          LUI_READ_ACTOR: trailbiomed-packages-bridge[bot]
-          LUI_READ_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: sbt -J-Xmx3g "browser/fullLinkJS" "example/run /tmp/sample-report.html"
 
       - name: Upload sample report
