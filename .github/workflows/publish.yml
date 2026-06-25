@@ -30,8 +30,22 @@ jobs:
       - name: Show derived version
         run: sbt 'show ThisBuild / version'
 
-      - name: Publish sharedJVM + jvm (browser bundle included via resource gen)
+      - name: Publish to Maven Central
+        env:
+          PGP_PASSPHRASE:    ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET:        ${{ secrets.PGP_SECRET }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: sbt -J-Xmx3g ci-release
+
+      - name: Publish to GitHub Packages
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: sbt -J-Xmx3g "sharedJVM/publish" "jvm/publish"
+        run: |
+          sbt -J-Xmx3g \
+            'set ThisBuild / publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/trailbiomed/scala-reporting")' \
+            'sharedJVM/publish' \
+            'jvm/publish'

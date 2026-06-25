@@ -2,7 +2,7 @@ import org.scalajs.linker.interface.ModuleKind
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 ThisBuild / scalaVersion    := "3.3.7"
-ThisBuild / organization    := "biomed.trail"
+ThisBuild / organization    := "io.github.pityka"
 ThisBuild / homepage        := Some(url("https://github.com/trailbiomed/scala-reporting"))
 ThisBuild / licenses        := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
 ThisBuild / scmInfo         := Some(
@@ -31,10 +31,6 @@ ThisBuild / scalacOptions ++= Seq(
 val ghOwner    = "trailbiomed"
 val ghRepoName = "scala-reporting"
 
-ThisBuild / publishMavenStyle := true
-ThisBuild / publishTo := Some(
-  "GitHub Package Registry" at s"https://maven.pkg.github.com/$ghOwner/$ghRepoName"
-)
 
 ThisBuild / resolvers += "GitHub Package Registry (scala-lui)" at
   s"https://maven.pkg.github.com/$ghOwner/scala-lui"
@@ -50,7 +46,7 @@ val jsoniterVersion = "2.30.4"
 val laminarVersion  = "17.1.0"
 val nsplVersion     = "0.18.0"
 val saddleVersion   = "4.0.0-M14"
-val luiVersion      = "0.0.0-27-1e1360a1"
+val luiVersion      = "0.4.0"
 
 lazy val root = (project in file("."))
   .aggregate(sharedJS, sharedJVM, browser, jvm, example)
