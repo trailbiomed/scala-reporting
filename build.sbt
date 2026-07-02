@@ -17,6 +17,8 @@ ThisBuild / developers      := List(
 
 ThisBuild / dynverSeparator := "-"
 
+ThisBuild / Compile / doc / sources := Seq.empty
+
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
   "-feature",
