@@ -5,7 +5,9 @@ final case class Document(
     pages: Seq[Page],
     createdAt: String,
     version: Option[String] = None,
-    source: Option[SourceFile] = None
+    source: Option[SourceFile] = None,
+    logo: Option[String] = None,
+    footnote: Option[String] = None
 )
 
 final case class SourceFile(

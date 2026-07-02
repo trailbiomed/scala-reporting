@@ -48,7 +48,17 @@ object Main {
       "example/src/main/scala/trail/reporting/example/Main.scala"
     )
 
-    val baseDoc = document("Sample Report").withVersion("0.2.0")
+    val logoSvg =
+      """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        |  <path d="M6 6h20"/>
+        |  <path d="M16 6v20"/>
+        |  <path d="M10 22l6 4 6-4"/>
+        |</svg>""".stripMargin
+
+    val baseDoc = document("Sample Report")
+      .withVersion("0.2.0")
+      .withLogo(logoSvg)
+      .withFootnote("Confidential — Trail Biomed. For internal use only.")
     val withSrc =
       if (Files.isRegularFile(sourceCandidate)) baseDoc.withSource(sourceCandidate) else baseDoc
 

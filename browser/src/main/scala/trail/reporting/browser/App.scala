@@ -40,6 +40,9 @@ object App extends ComponentFactory[App] {
       pages.map(p => pagePanel(p, el)).toList
     }
 
+    val hasFootnote: Signal[Boolean] =
+      el.docVar.signal.map(_.footnote.exists(_.nonEmpty)).distinct
+
     root.amend(
       themed(t =>
         stack.col(Length.zero) ++
@@ -56,6 +59,7 @@ object App extends ComponentFactory[App] {
           children <-- pagePanels
         )
       ),
+      child.maybe <-- hasFootnote.map(if (_) Some(Footer(el)) else None),
       pagesSig.map(_.headOption.map(_.id).getOrElse("")).distinct --> el.activePageVar.writer,
       currentPage.map(_.flatMap(_.items.headOption.map(_.id))).distinct --> el.activeItemVar.writer
     )

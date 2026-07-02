@@ -21,7 +21,8 @@ object Header {
           stack.noShrink
       ),
       div(
-        stack.row(spacing.md) ++ css.alignItems("baseline"),
+        stack.row(spacing.md) ++ css.alignItems("center"),
+        child.maybe <-- app.docVar.signal.map(_.logo.map(logoElement)),
         span(
           themed(t =>
             css.fontSize(fontSizes.display) ++ css.fontWeight(FontWeight.SemiBold) ++ css.color(t.text)
@@ -40,6 +41,25 @@ object Header {
         ThemePicker()
       )
     )
+
+  private def logoElement(svg: String): HtmlElement = {
+    val host = div(
+      css.raw("display", "inline-flex") ++
+        css.alignItems("center") ++
+        css.raw("height", "32px")
+    )
+    host.amend(
+      onMountCallback { ctx =>
+        val node = ctx.thisNode.ref
+        node.innerHTML = svg
+        val child = node.querySelector("svg")
+        if (child != null) {
+          child.setAttribute("style", "height:100%;width:auto;display:block")
+        }
+      }
+    )
+    host
+  }
 
   private def downloadButton(sf: SourceFile): HtmlElement = {
     val btn = Button(

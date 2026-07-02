@@ -51,6 +51,8 @@ object dsl {
     def withSource(sf: SourceFile): Document = doc.copy(source = Some(sf))
     def withSource(path: Path): Document     = doc.copy(source = Some(Report.sourceFromPath(path)))
     def withCreatedAt(ts: String): Document  = doc.copy(createdAt = ts)
+    def withLogo(svg: String): Document      = doc.copy(logo = Some(svg))
+    def withFootnote(text: String): Document = doc.copy(footnote = Some(text))
     def withPages(ps: Page*): Document       = doc.copy(pages = doc.pages ++ ps)
 
     def page(id: String, title: String, items: Item*): Document =
