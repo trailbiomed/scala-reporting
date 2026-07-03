@@ -32,5 +32,6 @@ object ItemCard {
     case DataItem.CodeItem(lang, source)   => renderers.CodeRenderer(lang, source)
     case DataItem.TableItem(table)         => renderers.TableRenderer(table)
     case DataItem.PlotItem(svg)            => renderers.PlotRenderer(svg)
+    case pdb: DataItem.PdbItem             => renderers.PdbRenderer(pdb)
   }
 }

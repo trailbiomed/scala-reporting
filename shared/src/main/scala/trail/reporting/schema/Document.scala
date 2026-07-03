@@ -33,6 +33,17 @@ enum DataItem {
   case CodeItem(language: String, source: String)
   case TableItem(table: TableSpec)
   case PlotItem(svg: String)
+  case PdbItem(pdb: String, style: PdbStyle, color: PdbColor, height: Int, background: String)
+}
+
+/** Render mode for a [[DataItem.PdbItem]]. Maps 1-to-1 to a bio-pv viewer method. */
+enum PdbStyle {
+  case Cartoon, Trace, LineTrace, Sline, Tube, BallsAndSticks, Spheres, Points, Lines
+}
+
+/** Coloring scheme for a [[DataItem.PdbItem]]. Maps to a `pv.color.*` factory. */
+enum PdbColor {
+  case SsSuccession, BySs, ByChain, Rainbow, Uniform, ByResidueProp
 }
 
 final case class TableSpec(columns: Seq[Column]) {

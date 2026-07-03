@@ -19,9 +19,14 @@ object Report {
   def render(document: Document): String = {
     val json       = writeToString(document)
     val safeJson   = json.replace("</", "<\\/")
-    val bundle     = readBundle()
+    val bundle     = readResource("trail-reporting/browser.js")
     val safeBundle = bundle.replace("</", "<\\/")
     val title      = htmlEscape(document.title)
+    val bioPvTag   =
+      if (containsPdb(document)) {
+        val src = readResource("trail-reporting/bio-pv.min.js").replace("</", "<\\/")
+        s"<script>$src</script>"
+      } else ""
     s"""<!DOCTYPE html>
        |<html lang="en">
        |<head>
@@ -32,11 +37,18 @@ object Report {
        |<body style="margin:0;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif">
        |<div id="trail-report-root"></div>
        |<script id="trail-report-data" type="application/json">$safeJson</script>
+       |$bioPvTag
        |<script>$safeBundle</script>
        |</body>
        |</html>
        |""".stripMargin
   }
+
+  private def containsPdb(document: Document): Boolean =
+    document.pages.exists(_.items.exists(_.data.exists {
+      case _: DataItem.PdbItem => true
+      case _                   => false
+    }))
 
   def sourceFromPath(path: Path): SourceFile = {
     val bytes = Files.readAllBytes(path)
@@ -50,15 +62,15 @@ object Report {
 
   def nowIso(): String = Instant.now().toString
 
-  private def readBundle(): String = {
+  private def readResource(name: String): String = {
     val cl = Thread.currentThread.getContextClassLoader match {
       case null => getClass.getClassLoader
       case ok   => ok
     }
-    val is = cl.getResourceAsStream("trail-reporting/browser.js")
+    val is = cl.getResourceAsStream(name)
     require(
       is != null,
-      "trail-reporting/browser.js not found on classpath. Run `sbt jvm/compile` to relink the Scala.js bundle."
+      s"$name not found on classpath. Run `sbt jvm/compile` to relink the Scala.js bundle."
     )
     try new String(is.readAllBytes(), StandardCharsets.UTF_8)
     finally is.close()

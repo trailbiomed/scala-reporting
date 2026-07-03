@@ -35,6 +35,13 @@ object dsl {
   def code(language: String, source: String): DataItem = DataItem.CodeItem(language, source)
   def table(spec: TableSpec): DataItem                 = DataItem.TableItem(spec)
 
+  /** Render a PDB structure with bio-pv (WebGL). See [[PdbStyle]] / [[PdbColor]] for options. */
+  def pdb(content: String, style: PdbStyle, color: PdbColor, height: Int, background: String): DataItem =
+    DataItem.PdbItem(content, style, color, height, background)
+  
+  def pdb(content: String): DataItem =
+    pdb(content, PdbStyle.Cartoon, PdbColor.SsSuccession, 480, "white")
+
   def frame[RX, CX, T](f: Frame[RX, CX, T])(using fc: FrameConvert[T]): DataItem =
     DataItem.TableItem(fc(f))
 
@@ -76,6 +83,14 @@ object dsl {
     def text(content: String): Item                  = i.add(DataItem.TextItem(content))
     def code(language: String, source: String): Item = i.add(DataItem.CodeItem(language, source))
     def table(spec: TableSpec): Item                 = i.add(DataItem.TableItem(spec))
+
+    def pdb(
+        content:    String,
+        style:      PdbStyle = PdbStyle.Cartoon,
+        color:      PdbColor = PdbColor.SsSuccession,
+        height:     Int      = 480,
+        background: String   = "white"
+    ): Item = i.add(DataItem.PdbItem(content, style, color, height, background))
 
     def frame[RX, CX, T](f: Frame[RX, CX, T])(using fc: FrameConvert[T]): Item =
       i.add(DataItem.TableItem(fc(f)))

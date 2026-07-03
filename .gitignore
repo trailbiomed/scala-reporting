@@ -8,3 +8,4 @@ metals.sbt
 project/project/
 project/target/
 .bsp/sbt.json
+report.html

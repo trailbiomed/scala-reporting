@@ -7,6 +7,7 @@ import trail.reporting.{Report, SaddleAdapter}
 import trail.reporting.dsl.*
 import trail.reporting.schema.*
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 
 object Main {
@@ -94,8 +95,26 @@ object Main {
           .text("SVG plot pre-rendered on the JVM via nspl-awt; the browser just embeds the SVG.")
           .plot(plotBuild, width = 800)
       )
+      .page("structure", "Structure",
+        item("crambin-cartoon", "Crambin (1CRN) — cartoon / ssSuccession")
+          .text(
+            "PDB structure rendered client-side with bio-pv. The PDB text is embedded in the report; " +
+              "the WebGL viewer is spun up on mount, resizes with its container, and supports mouse rotate/zoom."
+          )
+          .pdb(loadPdbResource("1crn.pdb"), style = PdbStyle.Cartoon, color = PdbColor.SsSuccession, height = 480),
+        item("crambin-spheres", "Crambin (1CRN) — spheres / byChain")
+          .text("Same structure, different render + coloring — confirms two viewers coexist on one page.")
+          .pdb(loadPdbResource("1crn.pdb"), style = PdbStyle.Spheres, color = PdbColor.ByChain, height = 480)
+      )
 
     Report.write(doc, output)
     println(s"Wrote ${output.toAbsolutePath} (${Files.size(output)} bytes)")
+  }
+
+  private def loadPdbResource(name: String): String = {
+    val is = getClass.getClassLoader.getResourceAsStream(name)
+    require(is != null, s"resource $name not on classpath")
+    try new String(is.readAllBytes(), StandardCharsets.UTF_8)
+    finally is.close()
   }
 }
