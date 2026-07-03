@@ -259,11 +259,15 @@ object DataTable extends ComponentFactory[DataTable] {
           ),
           tbody(
             children <-- Signal
-              .combine(pagedRowsSig, visibleColsSig, bodyThemeSig)
-              .map { case (rows, cols, bt) =>
-                rows.iterator.zipWithIndex.map { case (rowIdx, ri) =>
+              .combine(pagedRowsSig, visibleColsSig, bodyThemeSig, sortedFilteredSig, el.pageSizeVar.signal)
+              .map { case (rows, cols, bt, allRows, ps) =>
+                val real = rows.iterator.zipWithIndex.map { case (rowIdx, ri) =>
                   bodyRow(rowIdx, ri, cols, bt)
                 }.toList
+                val padCount =
+                  if (allRows.size > ps) math.max(0, ps - rows.size) else 0
+                val pad = List.fill(padCount)(placeholderRow(cols, bt))
+                real ++ pad
               }
           )
         )
@@ -353,6 +357,19 @@ object DataTable extends ComponentFactory[DataTable] {
     )
     ti.root
   }
+
+  private def placeholderRow(cols: VisibleCols, bt: BodyTheme): HtmlElement =
+    tr(
+      css.raw("visibility", "hidden"),
+      aria.hidden := true,
+      cols.map(_ =>
+        td(
+          css.padding(spacing.md, spacing.lg) ++
+            css.raw("border-bottom", bt.cellBorderRaw),
+          "\u00A0"
+        )
+      ).toList
+    )
 
   private def bodyRow(rowIdx: Int, ri: Int, cols: VisibleCols, bt: BodyTheme): HtmlElement =
     tr(
