@@ -45,4 +45,6 @@ jobs:
           sbt -J-Xmx3g \
             'set ThisBuild / publishTo := Some("GitHub Package Registry" at "https://maven.pkg.github.com/trailbiomed/scala-reporting")' \
             'sharedJVM/publish' \
-            'jvm/publish'
+            'sharedJS/publish' \
+            'jvm/publish' \
+            'browser/publish'

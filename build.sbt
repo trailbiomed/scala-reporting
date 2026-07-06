@@ -62,7 +62,6 @@ lazy val shared = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % jsoniterVersion % "compile-internal"
     )
   )
-  .jsSettings(publish / skip := true)
 
 lazy val sharedJS  = shared.js
 lazy val sharedJVM = shared.jvm
@@ -72,7 +71,6 @@ lazy val browser = (project in file("browser"))
   .dependsOn(sharedJS)
   .settings(
     name := "trail-reporting-browser",
-    publish / skip := true,
     libraryDependencies ++= Seq(
       "io.github.pityka" %%% "lui-core"       % luiVersion,
       "io.github.pityka" %%% "lui-components" % luiVersion
