@@ -8,18 +8,31 @@ import trail.reporting.schema.*
 import trail.reporting.schema.Codecs.given
 import lui.style.*
 
-def mount(mountEl: dom.Element, document: Document): RootNode = {
+def mount(
+    mountEl: dom.Element,
+    document: Document,
+    customRenderers: Map[String, String => HtmlElement] = Map.empty
+): RootNode = {
   reset.install()
   Theme.signal.foreach { t =>
     dom.document.body.style.backgroundColor = t.bg.toCss
     dom.document.body.style.color = t.text.toCss
   }(unsafeWindowOwner)
-  render(mountEl, App(document).root)
+  render(mountEl, App(document, customRenderers).root)
 }
 
 /** Convenience: parse a JSON string encoding of [[Document]] and mount it. */
 def mount(mountEl: dom.Element, documentJson: String): RootNode =
   mount(mountEl, readFromString[Document](documentJson))
+
+/** Convenience: parse a JSON string encoding of [[Document]] and mount it with
+  * client-provided custom-item renderers. */
+def mount(
+    mountEl: dom.Element,
+    documentJson: String,
+    customRenderers: Map[String, String => HtmlElement]
+): RootNode =
+  mount(mountEl, readFromString[Document](documentJson), customRenderers)
 
 @main def main(): Unit = {
   val mountEl = dom.document.getElementById("trail-report-root")

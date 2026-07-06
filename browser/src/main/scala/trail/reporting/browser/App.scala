@@ -19,6 +19,8 @@ final class App private[browser] (val root: HtmlElement) extends Component {
   private[browser] val slideHelpVar: Var[Boolean]         = Var(false)
 
   private[browser] val openSlideshowBus: EventBus[Unit]   = new EventBus[Unit]
+  
+  private[browser] var customRenderers: Map[String, String => HtmlElement] = Map.empty
 }
 
 object App extends ComponentFactory[App] {
@@ -33,6 +35,15 @@ object App extends ComponentFactory[App] {
     )
 
   def apply(doc: Document): App = apply(App.document := doc)
+
+  /** Build an App with client-supplied custom-item renderers. Must be called before
+    * `render(mountEl, app.root)`; the map is captured once and read when each
+    * [[trail.reporting.schema.DataItem.CustomItem]] is rendered. */
+  def apply(doc: Document, customRenderers: Map[String, String => HtmlElement]): App = {
+    val a = apply(App.document := doc)
+    a.customRenderers = customRenderers
+    a
+  }
 
   val document = Prop.in[Document, App](_.docVar)
 

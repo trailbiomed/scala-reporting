@@ -35,6 +35,7 @@ enum DataItem {
   case TableItem(table: TableSpec)
   case PlotItem(svg: String)
   case PdbItem(pdb: String, style: PdbStyle, color: PdbColor, height: Int, background: String)
+  case CustomItem(kind: String, payload: String)
 }
 
 /** Render mode for a [[DataItem.PdbItem]]. Maps 1-to-1 to a bio-pv viewer method. */

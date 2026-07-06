@@ -94,7 +94,7 @@ object Slideshow {
       FullscreenOverlay.open  := true,
       FullscreenOverlay.close --> closeObs,
       FullscreenOverlay.body(
-        slideBody(cursorSig, currentPageSig, currentItemSig, goObs),
+        slideBody(cursorSig, currentPageSig, currentItemSig, goObs, app.customRenderers),
         progressFooter(
           pagesSig,
           cursorSig,
@@ -133,7 +133,8 @@ object Slideshow {
       cursorSig: Signal[Cursor],
       pageSig: Signal[Option[Page]],
       itemSig: Signal[Option[Item]],
-      goObs: Observer[Cursor]
+      goObs: Observer[Cursor],
+      customRenderers: Map[String, String => HtmlElement]
   ): HtmlElement =
     div(
       stack.grow ++ css.raw("min-height", "0") ++ css.raw("overflow", "auto"),
@@ -141,7 +142,7 @@ object Slideshow {
         css.padding(spacing.xxxl) ++ css.raw("max-width", "1440px") ++ css.margin(Length.zero, Length.auto),
         child <-- Signal.combine(cursorSig, pageSig, itemSig).map {
           case (c, Some(page), _) if c.isOverview => overviewSlide(page, c.pageIdx, goObs)
-          case (_, Some(_), Some(item))           => itemSlide(item)
+          case (_, Some(_), Some(item))           => itemSlide(item, customRenderers)
           case _                                  => emptySlide()
         }
       )
@@ -231,7 +232,7 @@ object Slideshow {
     )
   }
 
-  private def itemSlide(item: Item): HtmlElement =
+  private def itemSlide(item: Item, customRenderers: Map[String, String => HtmlElement]): HtmlElement =
     div(
       stack.col(spacing.xxl) ++ css.raw("font-size", "1.25rem"),
       span(
@@ -243,10 +244,10 @@ object Slideshow {
         ),
         item.title
       ),
-      item.data.map(d => slideData(d))
+      item.data.map(d => slideData(d, customRenderers))
     )
 
-  private def slideData(d: DataItem): Modifier[HtmlElement] = d match {
+  private def slideData(d: DataItem, customRenderers: Map[String, String => HtmlElement]): Modifier[HtmlElement] = d match {
     case DataItem.TextItem(content) =>
       div(
         themed(t =>
@@ -265,6 +266,11 @@ object Slideshow {
       )
     case DataItem.PlotItem(svg)             => renderers.PlotRenderer(svg)
     case pdb: DataItem.PdbItem              => renderers.PdbRenderer(pdb)
+    case DataItem.CustomItem(kind, payload) =>
+      customRenderers.get(kind) match {
+        case Some(render) => render(payload)
+        case None         => div(css.raw("opacity", "0.7"), s"No renderer registered for custom item kind '$kind'")
+      }
   }
 
   private def slideTable(spec: TableSpec): HtmlElement =

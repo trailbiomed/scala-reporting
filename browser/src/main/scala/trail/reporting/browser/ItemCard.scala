@@ -33,5 +33,10 @@ object ItemCard {
     case DataItem.TableItem(table)         => renderers.TableRenderer(table)
     case DataItem.PlotItem(svg)            => renderers.PlotRenderer(svg)
     case pdb: DataItem.PdbItem             => renderers.PdbRenderer(pdb)
+    case DataItem.CustomItem(kind, payload) =>
+      app.customRenderers.get(kind) match {
+        case Some(render) => render(payload)
+        case None         => div(css.raw("opacity", "0.7"), s"No renderer registered for custom item kind '$kind'")
+      }
   }
 }
