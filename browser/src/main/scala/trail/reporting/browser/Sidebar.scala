@@ -48,9 +48,9 @@ object Sidebar {
       },
       onMouseEnter.mapTo(true)  --> hovered.writer,
       onMouseLeave.mapTo(false) --> hovered.writer,
-      onClick --> Observer[dom.MouseEvent] { _ =>
-        app.activeItemVar.set(Some(item.id))
-        val node = dom.document.getElementById(s"item-${item.id}")
+      onClick.mapTo(Some(item.id)) --> app.activeItemVar.writer,
+      onClick.mapTo(s"item-${item.id}") --> Observer[String] { id =>
+        val node = dom.document.getElementById(id)
         if (node != null) node.scrollIntoView(true)
       },
       item.title

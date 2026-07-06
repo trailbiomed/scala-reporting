@@ -75,6 +75,8 @@ object dsl {
       p.copy(items = p.items :+ Item(id, title, data))
 
     def item(i: Item): Page = p.copy(items = p.items :+ i)
+
+    def withDescription(text: String): Page = p.copy(description = Some(text))
   }
 
   extension (i: Item) {

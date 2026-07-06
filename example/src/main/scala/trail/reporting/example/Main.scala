@@ -64,47 +64,61 @@ object Main {
       if (Files.isRegularFile(sourceCandidate)) baseDoc.withSource(sourceCandidate) else baseDoc
 
     val doc = withSrc
-      .page("overview", "Overview",
-        item("intro", "Introduction")
-          .text(
-            "This is a self-contained sample report. Data is embedded as JSON in this " +
-              "single HTML file and the Scala.js bundle that renders it is inlined too."
-          )
-          .code(
-            "scala",
-            """val doc = document("Title")
-              |  .withVersion("0.2.0")
-              |  .withSource(path)
-              |  .page("overview", "Overview",
-              |    item("metrics", "Cohort").text("...").frame(metricsFrame)
-              |  )
-              |Report.write(doc, Paths.get("report.html"))""".stripMargin
-          ),
-        item("metrics", "Cohort metrics")
-          .text(
-            s"$n rows. The Score column is sourced via `SaddleAdapter.numberColumn` from a " +
-              "Saddle Series; the rest are columnar values directly."
-          )
-          .table(cohortTable),
-        item("metrics-frame", "Saddle frame via .frame")
-          .text("Same Score column, but constructed via the .frame extension on a Frame[Int, String, Double].")
-          .frame(metrics)
+      .page(
+        page("overview", "Overview",
+          item("intro", "Introduction")
+            .text(
+              "This is a self-contained sample report. Data is embedded as JSON in this " +
+                "single HTML file and the Scala.js bundle that renders it is inlined too."
+            )
+            .code(
+              "scala",
+              """val doc = document("Title")
+                |  .withVersion("0.2.0")
+                |  .withSource(path)
+                |  .page("overview", "Overview",
+                |    item("metrics", "Cohort").text("...").frame(metricsFrame)
+                |  )
+                |Report.write(doc, Paths.get("report.html"))""".stripMargin
+            ),
+          item("metrics", "Cohort metrics")
+            .text(
+              s"$n rows. The Score column is sourced via `SaddleAdapter.numberColumn` from a " +
+                "Saddle Series; the rest are columnar values directly."
+            )
+            .table(cohortTable),
+          item("metrics-frame", "Saddle frame via .frame")
+            .text("Same Score column, but constructed via the .frame extension on a Frame[Int, String, Double].")
+            .frame(metrics)
+        ).withDescription(
+          "Introduces the report itself and a synthetic 240-row cohort. Skim the intro, " +
+            "then move into the metrics tables to see both column-major and Saddle-frame sources."
+        )
       )
-      .page("plots", "Plots",
-        item("trig", "Trigonometric series")
-          .text("SVG plot pre-rendered on the JVM via nspl-awt; the browser just embeds the SVG.")
-          .plot(plotBuild, width = 800)
+      .page(
+        page("plots", "Plots",
+          item("trig", "Trigonometric series")
+            .text("SVG plot pre-rendered on the JVM via nspl-awt; the browser just embeds the SVG.")
+            .plot(plotBuild, width = 800)
+        ).withDescription(
+          "Plots are rendered on the JVM at build time (nspl-awt) and embedded as SVG in the HTML."
+        )
       )
-      .page("structure", "Structure",
-        item("crambin-cartoon", "Crambin (1CRN) — cartoon / ssSuccession")
-          .text(
-            "PDB structure rendered client-side with bio-pv. The PDB text is embedded in the report; " +
-              "the WebGL viewer is spun up on mount, resizes with its container, and supports mouse rotate/zoom."
-          )
-          .pdb(loadPdbResource("1crn.pdb"), style = PdbStyle.Cartoon, color = PdbColor.SsSuccession, height = 480),
-        item("crambin-spheres", "Crambin (1CRN) — spheres / byChain")
-          .text("Same structure, different render + coloring — confirms two viewers coexist on one page.")
-          .pdb(loadPdbResource("1crn.pdb"), style = PdbStyle.Spheres, color = PdbColor.ByChain, height = 480)
+      .page(
+        page("structure", "Structure",
+          item("crambin-cartoon", "Crambin (1CRN) — cartoon / ssSuccession")
+            .text(
+              "PDB structure rendered client-side with bio-pv. The PDB text is embedded in the report; " +
+                "the WebGL viewer is spun up on mount, resizes with its container, and supports mouse rotate/zoom."
+            )
+            .pdb(loadPdbResource("1crn.pdb"), style = PdbStyle.Cartoon, color = PdbColor.SsSuccession, height = 480),
+          item("crambin-spheres", "Crambin (1CRN) — spheres / byChain")
+            .text("Same structure, different render + coloring — confirms two viewers coexist on one page.")
+            .pdb(loadPdbResource("1crn.pdb"), style = PdbStyle.Spheres, color = PdbColor.ByChain, height = 480)
+        ).withDescription(
+          "Client-side molecular structure viewers (bio-pv, WebGL). Two panes of Crambin (1CRN) " +
+            "demonstrate independent style and coloring on the same page."
+        )
       )
 
     Report.write(doc, output)

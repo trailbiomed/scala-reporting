@@ -19,7 +19,8 @@ final case class SourceFile(
 final case class Page(
     id: String,
     title: String,
-    items: Seq[Item]
+    items: Seq[Item],
+    description: Option[String] = None
 )
 
 final case class Item(

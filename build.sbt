@@ -48,7 +48,7 @@ val jsoniterVersion = "2.30.4"
 val laminarVersion  = "17.1.0"
 val nsplVersion     = "0.18.0"
 val saddleVersion   = "4.0.0-M14"
-val luiVersion      = "0.4.0"
+val luiVersion      = "0.6.0"
 
 lazy val root = (project in file("."))
   .aggregate(sharedJS, sharedJVM, browser, jvm, example)

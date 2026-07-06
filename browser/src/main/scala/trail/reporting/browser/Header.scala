@@ -37,6 +37,7 @@ object Header {
       div(
         stack.row(spacing.md) ++ css.alignItems("center"),
         span(typo.hint, child.text <-- app.docVar.signal.map(_.createdAt)),
+        slideshowButton(app),
         child.maybe <-- app.docVar.signal.map(_.source.map(downloadButton)),
         ThemePicker()
       )
@@ -60,6 +61,14 @@ object Header {
     )
     host
   }
+
+  private def slideshowButton(app: App): HtmlElement =
+    Button(
+      Button.label   := "Slideshow",
+      Button.variant := Button.Variant.Secondary,
+      Button.size    := Button.Size.Small,
+      Button.click   --> app.openSlideshowBus.writer
+    ).root
 
   private def downloadButton(sf: SourceFile): HtmlElement = {
     val btn = Button(
