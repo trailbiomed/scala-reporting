@@ -144,8 +144,28 @@ object Column {
     else          cmp
   }
 
-  private[schema] def formatNumber(d: Double): String =
+  private[schema] def formatNumber(d: Double): String = {
     if (java.lang.Double.isNaN(d) || java.lang.Double.isInfinite(d)) d.toString
-    else if (d == d.toLong.toDouble && math.abs(d) < 1e15)            d.toLong.toString
-    else                                                              d.toString
+    else if (d == d.toLong.toDouble && math.abs(d) < 1e15) d.toLong.toString
+    else {
+      val raw = s"%.6g".format(d)
+      if (raw.contains('e') || raw.contains('E')) trimExponent(raw)
+      else if (raw.contains('.'))                 trimTrailingZeros(raw)
+      else                                        raw
+    }
+  }
+
+  private def trimTrailingZeros(s: String): String = {
+    var i = s.length
+    while (i > 0 && s.charAt(i - 1) == '0') i -= 1
+    if (i > 0 && s.charAt(i - 1) == '.') i -= 1
+    s.substring(0, i)
+  }
+
+  private def trimExponent(s: String): String = {
+    val eIdx = math.max(s.indexOf('e'), s.indexOf('E'))
+    val mantissa = if (s.substring(0, eIdx).contains('.')) trimTrailingZeros(s.substring(0, eIdx))
+                   else s.substring(0, eIdx)
+    mantissa + s.substring(eIdx)
+  }
 }

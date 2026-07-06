@@ -5,7 +5,7 @@ import org.scalajs.dom
 import lui.*
 import lui.components.*
 import lui.style.*
-import trail.reporting.schema.{Column, DataItem, Item, Page, TableSpec}
+import trail.reporting.schema.{Column, DataItem, Item, NumberColumn, Page, TableSpec}
 
 object Slideshow {
 
@@ -308,6 +308,7 @@ object Slideshow {
 
   private def slideBodyCell(col: Column, i: Int): HtmlElement =
     td(
+      rawTooltip(col, i).map(v => title := v),
       themed(t =>
         css.padding(spacing.sm, spacing.lg) ++
           css.raw("border-bottom", s"1px solid ${t.border.toCss}") ++
@@ -318,6 +319,11 @@ object Slideshow {
       ),
       col.stringAt(i)
     )
+
+  private def rawTooltip(col: Column, i: Int): Option[String] = col match {
+    case n: NumberColumn if !n.isNullAt(i) => Some(n.values(i).toString)
+    case _                                 => None
+  }
 
   private def emptySlide(): HtmlElement =
     div(typo.muted, "No slides available.")
