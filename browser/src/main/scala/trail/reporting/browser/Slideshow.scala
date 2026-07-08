@@ -5,7 +5,7 @@ import org.scalajs.dom
 import lui.*
 import lui.components.*
 import lui.style.*
-import trail.reporting.schema.{Column, DataItem, Item, NumberColumn, Page, PageTag, TableSpec}
+import trail.reporting.schema.{Column, DataItem, IntegerColumn, Item, NumberColumn, Page, PageTag, TableSpec}
 
 object Slideshow {
 
@@ -268,15 +268,7 @@ object Slideshow {
     )
 
   private def slideData(d: DataItem, customRenderers: Map[String, String => HtmlElement]): Modifier[HtmlElement] = d match {
-    case DataItem.TextItem(content) =>
-      div(
-        themed(t =>
-          css.color(t.text) ++
-            css.raw("font-size", "1.875rem") ++
-            css.raw("line-height", "1.5")
-        ),
-        content
-      )
+    case DataItem.TextItem(content) => slideText(content)
     case DataItem.CodeItem(lang, source) =>
       renderers.CodeRenderer(lang, source)
     case DataItem.TableItem(table) =>
@@ -293,6 +285,85 @@ object Slideshow {
       }
   }
   
+  private def slideText(content: String): HtmlElement =
+    div(
+      themed(t =>
+        css.color(t.text) ++
+          css.raw("font-size", "1.875rem") ++
+          css.raw("line-height", "1.5")
+      ),
+      stack.col(spacing.md),
+      renderers.Markdown.parse(content).map(slideBlock)
+    )
+
+  private def slideBlock(b: renderers.Markdown.Block): HtmlElement = b match {
+    case renderers.Markdown.Block.Heading(level, inlines) =>
+      val size = level match {
+        case 1 => "2.5rem"
+        case 2 => "2.25rem"
+        case _ => "2rem"
+      }
+      div(
+        themed(t =>
+          css.color(t.text) ++
+            css.raw("font-size", size) ++
+            css.raw("line-height", "1.2") ++
+            css.fontWeight(FontWeight.SemiBold)
+        ),
+        inlines.map(slideInline)
+      )
+    case renderers.Markdown.Block.Paragraph(inlines) =>
+      div(inlines.map(slideInline))
+    case renderers.Markdown.Block.Bullets(items) =>
+      ul(
+        css.raw("padding-left", "1.5em") ++ css.raw("margin", "0"),
+        items.map(is => li(is.map(slideInline)))
+      )
+    case renderers.Markdown.Block.CodeBlock(_, src) =>
+      pre(
+        themed(t =>
+          css.background(t.surface) ++
+            css.color(t.text) ++
+            css.padding(spacing.lg) ++
+            css.borderRadius(radius.md) ++
+            css.raw("font-family", "ui-monospace,SFMono-Regular,monospace") ++
+            css.raw("font-size", "1.5rem") ++
+            css.raw("line-height", "1.4") ++
+            css.raw("overflow", "auto") ++
+            css.raw("margin", "0")
+        ),
+        src
+      )
+  }
+
+  private def slideInline(i: renderers.Markdown.Inline): HtmlElement = i match {
+    case renderers.Markdown.Inline.Plain(t)    => span(t)
+    case renderers.Markdown.Inline.Bold(t)     => strong(t)
+    case renderers.Markdown.Inline.Italic(t)   => em(t)
+    case renderers.Markdown.Inline.CodeSpan(t) =>
+      code(
+        themed(theme =>
+          css.background(theme.surface) ++
+            css.raw("padding", "0.05em 0.35em") ++
+            css.raw("border-radius", "0.3em") ++
+            css.raw("font-family", "ui-monospace,SFMono-Regular,monospace") ++
+            css.raw("font-size", "0.9em")
+        ),
+        t
+      )
+    case renderers.Markdown.Inline.Link(label, url) =>
+      a(
+        href   := url,
+        target := "_blank",
+        rel    := "noopener noreferrer",
+        themed(t =>
+          css.color(t.text) ++
+            css.raw("text-decoration", "underline")
+        ),
+        label
+      )
+  }
+
   private def slidePlot(svg: String): HtmlElement = {
     val host = div(
       css.raw("max-height", "70vh") ++
@@ -367,12 +438,13 @@ object Slideshow {
              css.textAlign(TextAlign.Right) ++ css.raw("font-variant-numeric", "tabular-nums")
            else Style.empty)
       ),
-      col.stringAt(i)
+      col.displayAt(i)
     )
 
   private def rawTooltip(col: Column, i: Int): Option[String] = col match {
-    case n: NumberColumn if !n.isNullAt(i) => Some(n.values(i).toString)
-    case _                                 => None
+    case n: NumberColumn  if !n.isNullAt(i) => Some(n.values(i).toString)
+    case n: IntegerColumn if !n.isNullAt(i) => Some(n.values(i).toString)
+    case _                                  => None
   }
 
   private def emptySlide(): HtmlElement =

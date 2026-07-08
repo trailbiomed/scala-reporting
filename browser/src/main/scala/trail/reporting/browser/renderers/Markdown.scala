@@ -14,7 +14,7 @@ import scala.collection.mutable
   *
   * Unmatched delimiters render literally. No nesting of inline styles.
   */
-private[renderers] object Markdown {
+private[browser] object Markdown {
 
   enum Inline {
     case Plain(text: String)

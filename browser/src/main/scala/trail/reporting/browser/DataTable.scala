@@ -387,12 +387,13 @@ object DataTable extends ComponentFactory[DataTable] {
         css.raw("border-bottom", bt.cellBorderRaw) ++
         colorStyle ++
         alignStyle
-    td(full, rawTooltip(col, rowIdx).map(v => title := v), col.stringAt(rowIdx))
+    td(full, rawTooltip(col, rowIdx).map(v => title := v), col.displayAt(rowIdx))
   }
 
   private def rawTooltip(col: Column, i: Int): Option[String] = col match {
-    case n: NumberColumn if !n.isNullAt(i) => Some(n.values(i).toString)
-    case _                                 => None
+    case n: NumberColumn  if !n.isNullAt(i) => Some(n.values(i).toString)
+    case n: IntegerColumn if !n.isNullAt(i) => Some(n.values(i).toString)
+    case _                                  => None
   }
 
   private def rowMatches(rowIdx: Int, filters: Array[(Column, String)]): Boolean = {

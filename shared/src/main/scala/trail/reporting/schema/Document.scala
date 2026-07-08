@@ -77,7 +77,11 @@ sealed trait Column {
   def label: String
   def length: Int
   def isNullAt(i: Int): Boolean
+
   def stringAt(i: Int): String
+
+  def displayAt(i: Int): String = stringAt(i)
+
   def doubleAt(i: Int): Double
   def compareAt(i: Int, j: Int): Int
   def isNumeric: Boolean
@@ -122,12 +126,14 @@ final case class IntegerColumn(
     values: IndexedSeq[Long],
     nulls:  Set[Int] = Set.empty
 ) extends Column {
-  def length: Int                    = values.length
-  def isNullAt(i: Int): Boolean      = nulls.contains(i)
-  def stringAt(i: Int): String       = if (isNullAt(i)) "" else values(i).toString
-  def doubleAt(i: Int): Double       = if (isNullAt(i)) Double.NaN else values(i).toDouble
-  def isNumeric: Boolean             = true
-  def compareAt(i: Int, j: Int): Int = Column.nullsLastCompare(this, i, j) {
+  def length: Int                     = values.length
+  def isNullAt(i: Int): Boolean       = nulls.contains(i)
+  def stringAt(i: Int): String        = if (isNullAt(i)) "" else values(i).toString
+  override def displayAt(i: Int): String =
+    if (isNullAt(i)) "" else Column.formatInteger(values(i))
+  def doubleAt(i: Int): Double        = if (isNullAt(i)) Double.NaN else values(i).toDouble
+  def isNumeric: Boolean              = true
+  def compareAt(i: Int, j: Int): Int  = Column.nullsLastCompare(this, i, j) {
     java.lang.Long.compare(values(i), values(j))
   }
 }
@@ -157,6 +163,14 @@ object Column {
     else if (ni)  1
     else if (nj) -1
     else          cmp
+  }
+
+  /** Renders a Long with U+00A0 (non-breaking space) as the thousands separator, e.g.
+    * `1234567` -> `"1 234 567"`. Non-breaking so digit groups don't wrap. */
+  private[schema] def formatInteger(v: Long): String = {
+    val (sign, mag) = if (v < 0) ("-", v.toString.tail) else ("", v.toString)
+    val grouped     = mag.reverse.grouped(3).map(_.reverse).toList.reverse.mkString("\u00A0")
+    sign + grouped
   }
 
   private[schema] def formatNumber(d: Double): String = {
