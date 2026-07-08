@@ -83,6 +83,26 @@ object Main {
                 |  )
                 |Report.write(doc, Paths.get("report.html"))""".stripMargin
             ),
+          item("formatting", "Text formatting")
+            .text(
+              """`.text(...)` accepts a minimal Markdown flavor. Supported constructs:
+                |
+                |- Emphasis: **bold**, *italic*, `inline code`, [links](https://example.com)
+                |- Bullet lists (`- ` or `* ` at line start)
+                |- ATX headings (`#`, `##`, `###`)
+                |- Fenced code blocks with an optional language tag
+                |
+                |### Nested example
+                |
+                |A paragraph can mix **bold** with *italic* and `code`, and continue over
+                |several source lines that collapse into a single paragraph.
+                |
+                |```scala
+                |item("x", "X").text("**hello** *world*")
+                |```
+                |
+                |Unmatched delimiters like a lone * render literally.""".stripMargin
+            ),
           item("metrics", "Cohort metrics")
             .text(
               s"$n rows. The Score column is sourced via `SaddleAdapter.numberColumn` from a " +

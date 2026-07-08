@@ -73,7 +73,8 @@ lazy val browser = (project in file("browser"))
     name := "trail-reporting-browser",
     libraryDependencies ++= Seq(
       "io.github.pityka" %%% "lui-core"       % luiVersion,
-      "io.github.pityka" %%% "lui-components" % luiVersion
+      "io.github.pityka" %%% "lui-components" % luiVersion,
+      "org.scalameta"    %%% "munit"          % "1.0.4" % Test
     ),
     scalaJSUseMainModuleInitializer := true,
     scalaJSLinkerConfig ~= (
