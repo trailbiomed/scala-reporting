@@ -284,13 +284,37 @@ object Slideshow {
         css.raw("max-height", "70vh") ++ css.raw("overflow", "auto"),
         slideTable(table)
       )
-    case DataItem.PlotItem(svg)             => renderers.PlotRenderer(svg)
+    case DataItem.PlotItem(svg)             => slidePlot(svg)
     case pdb: DataItem.PdbItem              => renderers.PdbRenderer(pdb)
     case DataItem.CustomItem(kind, payload) =>
       customRenderers.get(kind) match {
         case Some(render) => render(payload)
         case None         => div(css.raw("opacity", "0.7"), s"No renderer registered for custom item kind '$kind'")
       }
+  }
+  
+  private def slidePlot(svg: String): HtmlElement = {
+    val host = div(
+      css.raw("max-height", "70vh") ++
+        css.raw("overflow", "hidden") ++
+        css.raw("text-align", "center")
+    )
+    host.amend(
+      onMountCallback { ctx =>
+        val node = ctx.thisNode.ref
+        node.innerHTML = svg
+        Option(node.querySelector("svg")).foreach { svgEl =>
+          svgEl.setAttribute(
+            "style",
+            "max-width: 100%; max-height: 70vh; width: auto; height: auto; display: block; margin: 0 auto;"
+          )
+          if (!svgEl.hasAttribute("preserveAspectRatio")) {
+            svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet")
+          }
+        }
+      }
+    )
+    host
   }
 
   private def slideTable(spec: TableSpec): HtmlElement =
