@@ -57,6 +57,10 @@ object dsl {
     def withFootnote(text: String): Document = doc.copy(footnote = Some(text))
     def withPages(ps: Page*): Document       = doc.copy(pages = doc.pages ++ ps)
 
+    def withLayout(l: DocumentLayout): Document = doc.copy(layout = l)
+
+    def verticalNavigator: Document = doc.copy(layout = DocumentLayout.VerticalCards)
+
     def page(id: String, title: String, items: Item*): Document =
       doc.copy(pages = doc.pages :+ Page(id, title, items))
 
@@ -72,6 +76,16 @@ object dsl {
     def item(i: Item): Page = p.copy(items = p.items :+ i)
 
     def withDescription(text: String): Page = p.copy(description = Some(text))
+
+    def withName(text: String): Page = p.copy(name = Some(text))
+
+    def withTags(ts: (String, String)*): Page =
+      p.copy(tags = p.tags ++ ts.map((k, v) => PageTag(k, v)))
+
+    def withTag(name: String, value: String): Page =
+      p.copy(tags = p.tags :+ PageTag(name, value))
+
+    def withItemMenu(mode: PageItemMenu): Page = p.copy(itemMenu = mode)
   }
 
   extension (i: Item) {

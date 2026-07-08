@@ -24,11 +24,11 @@ object Sidebar {
       ),
       span(typo.eyebrow, "Items"),
       children <-- currentPage.map(_.fold(List.empty[Item])(_.items.toList)).map { items =>
-        items.map(i => sidebarItem(i, app)).toList
+        items.zipWithIndex.map { case (i, idx) => sidebarItem(i, idx, app) }.toList
       }
     )
 
-  private def sidebarItem(item: Item, app: App): HtmlElement = {
+  private def sidebarItem(item: Item, index: Int, app: App): HtmlElement = {
     val hovered = Var(false)
     div(
       dataAttr("item-id") := item.id,
@@ -38,7 +38,8 @@ object Sidebar {
           if (selected) (t.brandSoft, t.brand)
           else if (h)   (t.surfaceDim, t.text)
           else          (lui.style.Color.transparent, t.textMuted)
-        css.padding(Length.px(4), spacing.md) ++
+        stack.row(spacing.sm) ++
+          css.padding(Length.px(4), spacing.md) ++
           css.borderRadius(radius.sm) ++
           css.background(bg) ++
           css.color(fg) ++
@@ -53,7 +54,8 @@ object Sidebar {
         val node = dom.document.getElementById(id)
         if (node != null) node.scrollIntoView(true)
       },
-      item.title
+      span(themed(t => css.color(t.textSubtle)), s"${index + 1}."),
+      span(item.title)
     )
   }
 }

@@ -64,6 +64,7 @@ object Main {
       if (Files.isRegularFile(sourceCandidate)) baseDoc.withSource(sourceCandidate) else baseDoc
 
     val doc = withSrc
+      .verticalNavigator
       .page(
         page("overview", "Overview",
           item("intro", "Introduction")
@@ -76,6 +77,7 @@ object Main {
               """val doc = document("Title")
                 |  .withVersion("0.2.0")
                 |  .withSource(path)
+                |  .verticalNavigator
                 |  .page("overview", "Overview",
                 |    item("metrics", "Cohort").text("...").frame(metricsFrame)
                 |  )
@@ -90,19 +92,24 @@ object Main {
           item("metrics-frame", "Saddle frame via .frame")
             .text("Same Score column, but constructed via the .frame extension on a Frame[Int, String, Double].")
             .frame(metrics)
-        ).withDescription(
-          "Introduces the report itself and a synthetic 240-row cohort. Skim the intro, " +
-            "then move into the metrics tables to see both column-major and Saddle-frame sources."
-        )
+        ).withName("Section 01")
+          .withTags("rows" -> n.toString, "kind" -> "tables")
+          .withDescription(
+            "Introduces the report itself and a synthetic 240-row cohort. Skim the intro, " +
+              "then move into the metrics tables to see both column-major and Saddle-frame sources."
+          )
       )
       .page(
         page("plots", "Plots",
           item("trig", "Trigonometric series")
             .text("SVG plot pre-rendered on the JVM via nspl-awt; the browser just embeds the SVG.")
             .plot(plotBuild, width = 800)
-        ).withDescription(
-          "Plots are rendered on the JVM at build time (nspl-awt) and embedded as SVG in the HTML."
-        )
+        ).withName("Section 02")
+          .withTags("kind" -> "plot", "count" -> "1")
+          .withItemMenu(PageItemMenu.Hidden)
+          .withDescription(
+            "Plots are rendered on the JVM at build time (nspl-awt) and embedded as SVG in the HTML."
+          )
       )
       .page(
         page("structure", "Structure",
@@ -115,10 +122,13 @@ object Main {
           item("crambin-spheres", "Crambin (1CRN) — spheres / byChain")
             .text("Same structure, different render + coloring — confirms two viewers coexist on one page.")
             .pdb(loadPdbResource("1crn.pdb"), style = PdbStyle.Spheres, color = PdbColor.ByChain, height = 480)
-        ).withDescription(
-          "Client-side molecular structure viewers (bio-pv, WebGL). Two panes of Crambin (1CRN) " +
-            "demonstrate independent style and coloring on the same page."
-        )
+        ).withName("Section 03")
+          .withTags("kind" -> "pdb", "pdb-id" -> "1CRN")
+          .withItemMenu(PageItemMenu.Popover)
+          .withDescription(
+            "Client-side molecular structure viewers (bio-pv, WebGL). Two panes of Crambin (1CRN) " +
+              "demonstrate independent style and coloring on the same page."
+          )
       )
 
     Report.write(doc, output)

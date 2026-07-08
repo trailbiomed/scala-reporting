@@ -7,7 +7,8 @@ final case class Document(
     version: Option[String] = None,
     source: Option[SourceFile] = None,
     logo: Option[String] = None,
-    footnote: Option[String] = None
+    footnote: Option[String] = None,
+    layout: DocumentLayout = DocumentLayout.HorizontalTabs
 )
 
 final case class SourceFile(
@@ -20,14 +21,27 @@ final case class Page(
     id: String,
     title: String,
     items: Seq[Item],
-    description: Option[String] = None
+    description: Option[String] = None,
+    name: Option[String] = None,
+    tags: Seq[PageTag] = Seq.empty,
+    itemMenu: PageItemMenu = PageItemMenu.Inline
 )
+
+final case class PageTag(name: String, value: String)
 
 final case class Item(
     id: String,
     title: String,
     data: Seq[DataItem]
 )
+
+enum DocumentLayout {
+  case HorizontalTabs, VerticalCards
+}
+
+enum PageItemMenu {
+  case Inline, Popover, Hidden
+}
 
 enum DataItem {
   case TextItem(content: String)

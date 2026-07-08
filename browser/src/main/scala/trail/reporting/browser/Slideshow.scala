@@ -5,7 +5,7 @@ import org.scalajs.dom
 import lui.*
 import lui.components.*
 import lui.style.*
-import trail.reporting.schema.{Column, DataItem, Item, NumberColumn, Page, TableSpec}
+import trail.reporting.schema.{Column, DataItem, Item, NumberColumn, Page, PageTag, TableSpec}
 
 object Slideshow {
 
@@ -160,7 +160,7 @@ object Slideshow {
               css.raw("text-transform", "uppercase") ++
               css.color(t.textMuted)
           ),
-          "Overview"
+          page.name.filter(_.nonEmpty).getOrElse("Overview")
         ),
         span(
           themed(t =>
@@ -172,6 +172,7 @@ object Slideshow {
           page.title
         )
       ),
+      Option.when(page.tags.nonEmpty)(slideTagRow(page.tags)),
       page.description.filter(_.nonEmpty).map { desc =>
         div(
           themed(t =>
@@ -203,15 +204,14 @@ object Slideshow {
     val hovered = Var(false)
     div(
       hovered.signal.styled { (t, h) =>
-        val (bg, borderColor) =
-          if (h) (t.brandSoft, t.brand) else (t.surfaceDim, t.border)
+        val bg = if (h) t.brandSoft else t.surface
         stack.col(spacing.sm) ++
           css.padding(spacing.lg, spacing.xl) ++
           css.borderRadius(radius.md) ++
-          css.border(Length.px(1), BorderStyle.Solid, borderColor) ++
           css.background(bg) ++
           css.cursor("pointer") ++
-          css.raw("user-select", "none")
+          css.raw("user-select", "none") ++
+          css.transition("background-color", 120)
       },
       onMouseEnter.mapTo(true)  --> hovered.writer,
       onMouseLeave.mapTo(false) --> hovered.writer,
@@ -231,6 +231,26 @@ object Slideshow {
       )
     )
   }
+
+  private def slideTagRow(tags: Seq[PageTag]): HtmlElement =
+    div(
+      css.raw("display", "flex") ++
+        css.raw("flex-wrap", "wrap") ++
+        css.raw("column-gap", spacing.xl.toCss) ++
+        css.raw("row-gap", spacing.sm.toCss),
+      tags.map(slideTagChip).toList
+    )
+
+  private def slideTagChip(tag: PageTag): HtmlElement =
+    span(
+      themed(t =>
+        stack.row(spacing.sm) ++
+          css.raw("font-size", "1.1rem") ++
+          css.color(t.textMuted)
+      ),
+      span(themed(t => css.color(t.textSubtle)), s"${tag.name}:"),
+      span(themed(t => css.color(t.text) ++ css.fontWeight(FontWeight.Medium)), tag.value)
+    )
 
   private def itemSlide(item: Item, customRenderers: Map[String, String => HtmlElement]): HtmlElement =
     div(

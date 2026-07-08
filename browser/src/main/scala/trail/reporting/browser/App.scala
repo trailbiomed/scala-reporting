@@ -63,6 +63,8 @@ object App extends ComponentFactory[App] {
     val hasFootnote: Signal[Boolean] =
       el.docVar.signal.map(_.footnote.exists(_.nonEmpty)).distinct
 
+    val layoutSig: Signal[DocumentLayout] = el.docVar.signal.map(_.layout).distinct
+
     root.amend(
       themed(t =>
         stack.col(Length.zero) ++
@@ -70,15 +72,10 @@ object App extends ComponentFactory[App] {
           css.background(t.bg)
       ),
       Header(el),
-      pageTabs(el),
-      div(
-        stack.row(Length.zero) ++ css.alignItems("flex-start") ++ stack.grow ++ css.raw("min-height", "0"),
-        Sidebar(el, currentPage),
-        div(
-          stack.fill ++ css.raw("min-width", "0"),
-          children <-- pagePanels
-        )
-      ),
+      child <-- layoutSig.map {
+        case DocumentLayout.HorizontalTabs => horizontalBody(el, currentPage, pagePanels)
+        case DocumentLayout.VerticalCards  => verticalBody(el, currentPage, pagePanels)
+      },
       child.maybe <-- hasFootnote.map(if (_) Some(Footer(el)) else None),
       child.maybe <-- el.slideshowOpenVar.signal.map { open =>
         if (open) Some(Slideshow(el)) else None
@@ -114,6 +111,46 @@ object App extends ComponentFactory[App] {
       Show.visible <-- el.activePageVar.signal.map(_ == page.id),
       Show.content(PageView(page, el))
     ).root
+
+  private def horizontalBody(
+      el: App,
+      currentPage: Signal[Option[Page]],
+      pagePanels: Signal[List[HtmlElement]]
+  ): HtmlElement = {
+    val itemMenuMode = currentPage.map(_.map(_.itemMenu).getOrElse(PageItemMenu.Inline)).distinct
+    div(
+      stack.col(Length.zero) ++ stack.grow ++ css.raw("min-height", "0"),
+      pageTabs(el),
+      div(
+        stack.row(Length.zero) ++ css.alignItems("flex-start") ++ stack.grow ++ css.raw("min-height", "0"),
+        child.maybe <-- itemMenuMode.map {
+          case PageItemMenu.Inline => Some(Sidebar(el, currentPage))
+          case _                   => None
+        },
+        div(
+          stack.fill ++ css.raw("min-width", "0"),
+          children <-- pagePanels
+        )
+      )
+    )
+  }
+
+  private def verticalBody(
+      el: App,
+      currentPage: Signal[Option[Page]],
+      pagePanels: Signal[List[HtmlElement]]
+  ): HtmlElement =
+    div(
+      stack.row(Length.zero) ++
+        css.alignItems("flex-start") ++
+        stack.grow ++
+        css.raw("min-height", "0"),
+      PageNavigator(el, currentPage),
+      div(
+        stack.fill ++ css.raw("min-width", "0"),
+        children <-- pagePanels
+      )
+    )
 
   private def isSlideshowShortcut(ev: dom.KeyboardEvent): Boolean = {
     if (ev.ctrlKey || ev.metaKey || ev.altKey) false
