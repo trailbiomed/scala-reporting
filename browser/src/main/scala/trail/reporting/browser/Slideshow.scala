@@ -393,7 +393,7 @@ object Slideshow {
       themed(t =>
         css.width(Length.pct(100)) ++
           css.raw("border-collapse", "collapse") ++
-          css.raw("font-size", "1.125rem") ++
+          css.raw("font-size", slideTableFontSize(spec.rowCount, spec.columns.length)) ++
           css.color(t.text)
       ),
       thead(
@@ -405,6 +405,28 @@ object Slideshow {
         (0 until spec.rowCount).map(i => slideBodyRow(spec, i)).toList
       )
     )
+
+  /** Slide tables should fill available space. Pick a font-size that grows when there
+    * are few rows or columns and shrinks back to the default when there are many.
+    * Two independent tiers (rows, cols); the more constraining one wins so text
+    * neither overflows horizontally nor makes the table taller than the slide. */
+  private def slideTableFontSize(rows: Int, cols: Int): String = {
+    def byRows(r: Int): Double = r match {
+      case n if n <= 3  => 3.0
+      case n if n <= 6  => 2.25
+      case n if n <= 10 => 1.75
+      case n if n <= 20 => 1.375
+      case _            => 1.125
+    }
+    def byCols(c: Int): Double = c match {
+      case n if n <= 2 => 3.0
+      case n if n <= 4 => 2.25
+      case n if n <= 6 => 1.75
+      case n if n <= 8 => 1.375
+      case _           => 1.125
+    }
+    f"${math.min(byRows(rows), byCols(cols))}%.3frem"
+  }
 
   private def slideHeadCell(col: Column): HtmlElement =
     th(

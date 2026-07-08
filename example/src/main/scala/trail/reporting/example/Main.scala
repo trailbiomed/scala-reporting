@@ -132,6 +132,36 @@ object Main {
           )
       )
       .page(
+        page("tables", "Tables",
+          item("small", "Small table fills the slide")
+            .text(
+              "Only **three rows** and three columns. In slideshow mode the font scales " +
+                "up so the table fills the available space instead of sitting tiny in the corner."
+            )
+            .table(TableSpec(Seq(
+              StringColumn("region", "Region", IndexedSeq("EMEA", "Americas", "APAC")),
+              IntegerColumn("headcount", "Headcount", IndexedSeq(42L, 87L, 63L)),
+              NumberColumn("share", "Share", IndexedSeq(0.234, 0.513, 0.253))
+            ))),
+          item("integers", "Integer thousand separators")
+            .text(
+              "`IntegerColumn` values render with a non-breaking space between groups of " +
+                "three digits — visual only, so search, sort, and CSV export still see the raw digits. " +
+                "Hover any cell to see the unformatted value."
+            )
+            .table(TableSpec(Seq(
+              StringColumn("account", "Account", IndexedSeq("Alpha", "Bravo", "Charlie", "Delta", "Echo")),
+              IntegerColumn("balance",     "Balance",      IndexedSeq(1234567L, 82000L, 9500000L, 1000000000L, 45L)),
+              IntegerColumn("transactions", "Transactions", IndexedSeq(1200L, 87L, 240000L, 3L, 15L)),
+              IntegerColumn("delta",        "Delta",        IndexedSeq(-4200L, -87L, 12345L, 0L, -1500000L))
+            )))
+        ).withName("Section 04")
+          .withTags("kind" -> "tables", "cases" -> "2")
+          .withDescription(
+            "Slide-fit table scaling and integer thousand-separator formatting."
+          )
+      )
+      .page(
         page("structure", "Structure",
           item("crambin-cartoon", "Crambin (1CRN) — cartoon / ssSuccession")
             .text(
