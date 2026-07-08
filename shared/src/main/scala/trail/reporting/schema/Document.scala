@@ -113,6 +113,8 @@ final case class NumberColumn(
   def length: Int                    = values.length
   def isNullAt(i: Int): Boolean      = nulls.contains(i)
   def stringAt(i: Int): String       = if (isNullAt(i)) "" else Column.formatNumber(values(i))
+  override def displayAt(i: Int): String =
+    if (isNullAt(i)) "" else Column.displayNumber(values(i))
   def doubleAt(i: Int): Double       = if (isNullAt(i)) Double.NaN else values(i)
   def isNumeric: Boolean             = true
   def compareAt(i: Int, j: Int): Int = Column.nullsLastCompare(this, i, j) {
@@ -169,8 +171,33 @@ object Column {
     * `1234567` -> `"1 234 567"`. Non-breaking so digit groups don't wrap. */
   private[schema] def formatInteger(v: Long): String = {
     val (sign, mag) = if (v < 0) ("-", v.toString.tail) else ("", v.toString)
-    val grouped     = mag.reverse.grouped(3).map(_.reverse).toList.reverse.mkString("\u00A0")
-    sign + grouped
+    sign + groupDigits(mag)
+  }
+
+  private def groupDigits(digits: String): String =
+    if (digits.length <= 3) digits
+    else digits.reverse.grouped(3).map(_.reverse).toList.reverse.mkString("\u00A0")
+
+  /** Like [[formatNumber]] but adds thousand separators (U+00A0) to the integer part.
+    * Used for display; [[formatNumber]] remains the plain form for CSV export and filtering. */
+  private[schema] def displayNumber(d: Double): String = {
+    val raw = formatNumber(d)
+    if (java.lang.Double.isNaN(d) || java.lang.Double.isInfinite(d)) raw
+    else addThousandsSeparators(raw)
+  }
+
+  private def addThousandsSeparators(s: String): String = {
+    val (sign, rest) = if (s.startsWith("-")) ("-", s.substring(1)) else ("", s)
+    val eIdx = {
+      val a = rest.indexOf('e'); val b = rest.indexOf('E')
+      if (a < 0) b else if (b < 0) a else math.min(a, b)
+    }
+    val (main, suffix) = if (eIdx >= 0) (rest.substring(0, eIdx), rest.substring(eIdx)) else (rest, "")
+    val dotIdx = main.indexOf('.')
+    val (intPart, fracPart) =
+      if (dotIdx >= 0) (main.substring(0, dotIdx), main.substring(dotIdx))
+      else             (main, "")
+    sign + groupDigits(intPart) + fracPart + suffix
   }
 
   private[schema] def formatNumber(d: Double): String = {

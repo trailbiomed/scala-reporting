@@ -139,7 +139,11 @@ object Slideshow {
     div(
       stack.grow ++ css.raw("min-height", "0") ++ css.raw("overflow", "auto"),
       div(
-        css.padding(spacing.xxxl) ++ css.raw("max-width", "1440px") ++ css.margin(Length.zero, Length.auto),
+        css.padding(spacing.xxxl) ++
+          css.raw("max-width", "min(2560px, 96vw)") ++
+          css.raw("width", "100%") ++
+          css.raw("box-sizing", "border-box") ++
+          css.margin(Length.zero, Length.auto),
         child <-- Signal.combine(cursorSig, pageSig, itemSig).map {
           case (c, Some(page), _) if c.isOverview => overviewSlide(page, c.pageIdx, goObs)
           case (_, Some(_), Some(item))           => itemSlide(item, customRenderers)
