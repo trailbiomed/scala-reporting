@@ -164,6 +164,60 @@ object Main {
           )
       )
       .page(
+        page("text-scaling", "Text scaling",
+          item("tiny", "Short blurb grows")
+            .text("A single sentence. Watch it fill the slide."),
+          item("medium", "Medium-length section stays comfortable")
+            .text(
+              """Two or three paragraphs of prose — long enough that a huge font would overflow, short
+                |enough that a tiny font would look silly. The heuristic picks a size in the middle.
+                |
+                |### Sub-heading
+                |
+                |Headings, `inline code`, **bold**, and *italic* all scale together because their sizes
+                |are expressed in `em`, not `rem`. Only the body font-size responds to content length.""".stripMargin
+            ),
+          item("dense", "Dense content shrinks to fit")
+            .text(
+              """When a slide carries a lot of text, the body font shrinks so everything remains visible
+                |without vertical scrolling. Headings and code blocks shrink proportionally.
+                |
+                |### Design notes
+                |
+                |- The scale bucket is picked from a stripped character count (markdown syntax, list
+                |  bullets, and fenced code blocks are collapsed before measuring).
+                |- Non-body sizes are `em`-relative so a single knob controls the whole slide.
+                |- Buckets are coarse on purpose: five discrete sizes read as intentional layout, while
+                |  a continuous scale would jitter between adjacent slides.
+                |
+                |### Where it applies
+                |
+                |Only the slideshow view uses this scaling. The regular page view keeps its normal
+                |typography because reading a long report benefits from a stable, familiar text size —
+                |there is no fixed viewport to fit into.
+                |
+                |```scala
+                |// slideTextBodyRem picks one of:
+                |//   3.000rem  (< 100 chars)
+                |//   2.375rem  (< 240 chars)
+                |//   1.875rem  (< 500 chars)  <- default
+                |//   1.500rem  (< 1000 chars)
+                |//   1.250rem  (< 2000 chars)
+                |//   1.125rem  (else)
+                |```
+                |
+                |That is roughly all there is to it. Open this slide fullscreen and compare it against
+                |the *Short blurb grows* and *Medium-length section* items to see the three tiers in
+                |action side by side.""".stripMargin
+            )
+        ).withName("Section 05")
+          .withTags("kind" -> "text", "tiers" -> "3")
+          .withDescription(
+            "Slide text picks a body font-size from its content length. Compare the three items to " +
+              "see short blurbs grow, medium sections stay comfortable, and dense content shrink."
+          )
+      )
+      .page(
         page("structure", "Structure",
           item("crambin-cartoon", "Crambin (1CRN) — cartoon / ssSuccession")
             .text(

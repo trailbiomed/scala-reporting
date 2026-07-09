@@ -289,23 +289,56 @@ object Slideshow {
       }
   }
   
-  private def slideText(content: String): HtmlElement =
+  private def slideText(content: String): HtmlElement = {
+    val blocks = renderers.Markdown.parse(content)
     div(
       themed(t =>
         css.color(t.text) ++
-          css.raw("font-size", "1.875rem") ++
+          css.raw("font-size", slideTextBodyRem(blocks)) ++
           css.raw("line-height", "1.5")
       ),
       stack.col(spacing.md),
-      renderers.Markdown.parse(content).map(slideBlock)
+      blocks.map(slideBlock)
     )
+  }
+
+  private def slideTextBodyRem(blocks: Seq[renderers.Markdown.Block]): String = {
+    val lines = estimatedLines(blocks)
+    val rem = lines match {
+      case n if n < 3  => 3.0
+      case n if n < 6  => 2.375
+      case n if n < 12 => 1.875
+      case n if n < 20 => 1.5
+      case n if n < 32 => 1.25
+      case _           => 1.125
+    }
+    f"$rem%.3frem"
+  }
+
+  private def estimatedLines(blocks: Seq[renderers.Markdown.Block]): Int = {
+    val CharsPerLine = 80
+    def wrap(chars: Int): Int = math.max(1, (chars + CharsPerLine - 1) / CharsPerLine)
+    def inlineChars(inls: Seq[renderers.Markdown.Inline]): Int = inls.iterator.map {
+      case renderers.Markdown.Inline.Plain(t)    => t.length
+      case renderers.Markdown.Inline.Bold(t)     => t.length
+      case renderers.Markdown.Inline.Italic(t)   => t.length
+      case renderers.Markdown.Inline.CodeSpan(t) => t.length
+      case renderers.Markdown.Inline.Link(l, _)  => l.length
+    }.sum
+    blocks.iterator.map {
+      case renderers.Markdown.Block.Heading(_, ins)   => wrap(inlineChars(ins)) + 1
+      case renderers.Markdown.Block.Paragraph(ins)    => wrap(inlineChars(ins)) + 1
+      case renderers.Markdown.Block.Bullets(items)    => items.iterator.map(is => wrap(inlineChars(is))).sum + 1
+      case renderers.Markdown.Block.CodeBlock(_, src) => src.count(_ == '\n') + 3
+    }.sum
+  }
 
   private def slideBlock(b: renderers.Markdown.Block): HtmlElement = b match {
     case renderers.Markdown.Block.Heading(level, inlines) =>
       val size = level match {
-        case 1 => "2.5rem"
-        case 2 => "2.25rem"
-        case _ => "2rem"
+        case 1 => "1.35em"
+        case 2 => "1.2em"
+        case _ => "1.1em"
       }
       div(
         themed(t =>
@@ -331,7 +364,7 @@ object Slideshow {
             css.padding(spacing.lg) ++
             css.borderRadius(radius.md) ++
             css.raw("font-family", "ui-monospace,SFMono-Regular,monospace") ++
-            css.raw("font-size", "1.5rem") ++
+            css.raw("font-size", "0.85em") ++
             css.raw("line-height", "1.4") ++
             css.raw("overflow", "auto") ++
             css.raw("margin", "0")
