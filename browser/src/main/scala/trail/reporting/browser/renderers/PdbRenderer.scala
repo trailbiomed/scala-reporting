@@ -21,7 +21,7 @@ object PdbRenderer {
     var fitObs:  js.UndefOr[dom.ResizeObserver] = js.undefined
 
     val host = div(
-      styleAttr := s"width:100%;height:${item.height}px;position:relative;overflow:hidden;"
+      styleAttr := s"width:100%;height:min(${item.height}px, 70vh);position:relative;overflow:hidden;"
     )
     host.amend(
       onMountUnmountCallback(

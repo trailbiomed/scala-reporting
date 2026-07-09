@@ -139,7 +139,7 @@ object Slideshow {
     div(
       stack.grow ++ css.raw("min-height", "0") ++ css.raw("overflow", "auto"),
       div(
-        css.padding(spacing.xxxl) ++
+        css.raw("padding", "clamp(1rem, 3vh, 3rem) clamp(1rem, 3vw, 3rem)") ++
           css.raw("max-width", "min(2560px, 96vw)") ++
           css.raw("width", "100%") ++
           css.raw("box-sizing", "border-box") ++
@@ -159,7 +159,7 @@ object Slideshow {
         stack.col(spacing.sm),
         span(
           themed(t =>
-            css.raw("font-size", "1.25rem") ++
+            css.raw("font-size", "clamp(0.85rem, 1.6vh, 1.25rem)") ++
               css.raw("letter-spacing", "0.08em") ++
               css.raw("text-transform", "uppercase") ++
               css.color(t.textMuted)
@@ -168,7 +168,7 @@ object Slideshow {
         ),
         span(
           themed(t =>
-            css.raw("font-size", "5rem") ++
+            css.raw("font-size", "clamp(2rem, 7vh, 5rem)") ++
               css.raw("line-height", "1.05") ++
               css.fontWeight(FontWeight.SemiBold) ++
               css.color(t.text)
@@ -181,7 +181,7 @@ object Slideshow {
         div(
           themed(t =>
             css.color(t.textMuted) ++
-              css.raw("font-size", "1.875rem") ++
+              css.raw("font-size", "clamp(1rem, 2.75vh, 1.875rem)") ++
               css.raw("line-height", "1.4") ++
               css.raw("max-width", "60ch")
           ),
@@ -190,13 +190,13 @@ object Slideshow {
       },
       if (page.items.isEmpty)
         div(
-          themed(t => css.color(t.textMuted) ++ css.raw("font-size", "1.5rem")),
+          themed(t => css.color(t.textMuted) ++ css.raw("font-size", "clamp(1rem, 2.25vh, 1.5rem)")),
           "This page contains no items."
         )
       else
         div(
           css.raw("display", "grid") ++
-            css.gridTemplateColumns("repeat(auto-fill, minmax(300px, 1fr))") ++
+            css.gridTemplateColumns("repeat(auto-fill, minmax(min(300px, 100%), 1fr))") ++
             css.gap(spacing.lg),
           page.items.zipWithIndex.map { case (item, itemIdx) =>
             overviewTile(item, pageIdx, itemIdx, goObs)
@@ -221,14 +221,14 @@ object Slideshow {
       onMouseLeave.mapTo(false) --> hovered.writer,
       onClick.mapTo(Cursor(pageIdx, itemIdx)) --> goObs,
       span(
-        themed(t => css.color(t.textMuted) ++ css.raw("font-size", "1rem")),
+        themed(t => css.color(t.textMuted) ++ css.raw("font-size", "clamp(0.85rem, 1.4vh, 1rem)")),
         s"${itemIdx + 1}"
       ),
       span(
         themed(t =>
           css.color(t.text) ++
             css.fontWeight(FontWeight.Medium) ++
-            css.raw("font-size", "1.5rem") ++
+            css.raw("font-size", "clamp(1rem, 2.25vh, 1.5rem)") ++
             css.raw("line-height", "1.25")
         ),
         item.title
@@ -258,10 +258,13 @@ object Slideshow {
 
   private def itemSlide(item: Item, customRenderers: Map[String, String => HtmlElement]): HtmlElement =
     div(
-      stack.col(spacing.xxl) ++ css.raw("font-size", "1.25rem"),
+      css.raw("display", "flex") ++
+        css.raw("flex-direction", "column") ++
+        css.raw("gap", "clamp(0.5rem, 2.25vh, 2rem)") ++
+        css.raw("font-size", "clamp(0.95rem, 1.8vh, 1.25rem)"),
       span(
         themed(t =>
-          css.raw("font-size", "3.75rem") ++
+          css.raw("font-size", "clamp(1.5rem, 4.5vh, 3.25rem)") ++
             css.raw("line-height", "1.1") ++
             css.fontWeight(FontWeight.SemiBold) ++
             css.color(t.text)
@@ -277,7 +280,9 @@ object Slideshow {
       renderers.CodeRenderer(lang, source)
     case DataItem.TableItem(table) =>
       div(
-        css.raw("max-height", "70vh") ++ css.raw("overflow", "auto"),
+        css.raw("max-height", "60vh") ++
+          css.raw("overflow", "auto") ++
+          css.raw("min-height", "0"),
         slideTable(table)
       )
     case DataItem.PlotItem(svg)             => slidePlot(svg)
@@ -303,16 +308,20 @@ object Slideshow {
   }
 
   private def slideTextBodyRem(blocks: Seq[renderers.Markdown.Block]): String = {
+    // Caption-scale: `slideText` describes an item that already has an `item.title` headline
+    // above it — so treat body text as body, not as a headline. Buckets max out around
+    // 2rem/32px so a short description doesn't blow up to 80px and crowd out the visual
+    // below it. Only very small viewports touch the min-rem floor.
     val lines = estimatedLines(blocks)
-    val rem = lines match {
-      case n if n < 3  => 3.0
-      case n if n < 6  => 2.375
-      case n if n < 12 => 1.875
-      case n if n < 20 => 1.5
-      case n if n < 32 => 1.25
-      case _           => 1.125
+    val (minRem, vh, maxRem) = lines match {
+      case n if n < 3  => (1.25,  2.75, 2.0)
+      case n if n < 6  => (1.125, 2.5,  1.75)
+      case n if n < 12 => (1.0,   2.25, 1.5)
+      case n if n < 20 => (0.9,   1.9,  1.375)
+      case n if n < 32 => (0.85,  1.65, 1.25)
+      case _           => (0.8,   1.4,  1.125)
     }
-    f"$rem%.3frem"
+    f"clamp($minRem%.3frem, $vh%.3fvh, $maxRem%.3frem)"
   }
 
   private def estimatedLines(blocks: Seq[renderers.Markdown.Block]): Int = {
@@ -401,29 +410,8 @@ object Slideshow {
       )
   }
 
-  private def slidePlot(svg: String): HtmlElement = {
-    val host = div(
-      css.raw("max-height", "70vh") ++
-        css.raw("overflow", "hidden") ++
-        css.raw("text-align", "center")
-    )
-    host.amend(
-      onMountCallback { ctx =>
-        val node = ctx.thisNode.ref
-        node.innerHTML = svg
-        Option(node.querySelector("svg")).foreach { svgEl =>
-          svgEl.setAttribute(
-            "style",
-            "max-width: 100%; max-height: 70vh; width: auto; height: auto; display: block; margin: 0 auto;"
-          )
-          if (!svgEl.hasAttribute("preserveAspectRatio")) {
-            svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet")
-          }
-        }
-      }
-    )
-    host
-  }
+  private def slidePlot(svg: String): HtmlElement =
+    renderers.PlotRenderer(svg, maxHeight = "60vh")
 
   private def slideTable(spec: TableSpec): HtmlElement =
     tableTag(
@@ -444,25 +432,34 @@ object Slideshow {
     )
 
   /** Slide tables should fill available space. Pick a font-size that grows when there
-    * are few rows or columns and shrinks back to the default when there are many.
-    * Two independent tiers (rows, cols); the more constraining one wins so text
-    * neither overflows horizontally nor makes the table taller than the slide. */
+    * are few rows or columns and shrinks back when there are many. Two independent tiers
+    * (rows, cols); the more constraining one wins so text neither overflows horizontally
+    * nor makes the table taller than the slide. Emitted as `clamp(minRem, Nvh, maxRem)`
+    * so the value stays reactive to viewport size — same shape as [[slideTextBodyRem]]. */
   private def slideTableFontSize(rows: Int, cols: Int): String = {
-    def byRows(r: Int): Double = r match {
-      case n if n <= 3  => 3.0
-      case n if n <= 6  => 2.25
-      case n if n <= 10 => 1.75
-      case n if n <= 20 => 1.375
-      case _            => 1.125
+    def rowTier(r: Int): Int = r match {
+      case n if n <= 3  => 0
+      case n if n <= 6  => 1
+      case n if n <= 10 => 2
+      case n if n <= 20 => 3
+      case _            => 4
     }
-    def byCols(c: Int): Double = c match {
-      case n if n <= 2 => 3.0
-      case n if n <= 4 => 2.25
-      case n if n <= 6 => 1.75
-      case n if n <= 8 => 1.375
-      case _           => 1.125
+    def colTier(c: Int): Int = c match {
+      case n if n <= 2 => 0
+      case n if n <= 4 => 1
+      case n if n <= 6 => 2
+      case n if n <= 8 => 3
+      case _           => 4
     }
-    f"${math.min(byRows(rows), byCols(cols))}%.3frem"
+    val tier = math.max(rowTier(rows), colTier(cols))
+    val (minRem, vh, maxRem) = tier match {
+      case 0 => (1.5,   4.5,  3.5)
+      case 1 => (1.25,  3.25, 2.5)
+      case 2 => (1.0,   2.5,  2.0)
+      case 3 => (0.9,   1.9,  1.5)
+      case _ => (0.75,  1.5,  1.25)
+    }
+    f"clamp($minRem%.3frem, $vh%.3fvh, $maxRem%.3frem)"
   }
 
   private def slideHeadCell(col: Column): HtmlElement =
