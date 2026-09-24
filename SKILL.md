@@ -11,7 +11,7 @@ Fluent, immutable DSL that builds a `Document` and serialises it as one self-con
 JVM: `import trail.reporting.*, trail.reporting.dsl.*, trail.reporting.schema.*`. Browser (Scala.js) uses the same DSL minus JVM-only pieces (Saddle `.frame`, nspl `.plot`, `withSource(Path)`).
 
 ## Shape
-`document(title).page(id, title, item(...), item(...))`. Items chain data: `item(id, title).text(...).code(lang, src).table(spec).frame(saddleFrame).plot(nsplBuild).pdb(pdb, style, color, height).custom(kind, payload)`. Every call returns a fresh value. Text accepts simple markdown.
+`document(title).page(id, title, item(...), item(...))`. Items chain data: `item(id, title).text(...).code(lang, src).table(spec).frame(saddleFrame).plot(nsplBuild).image(png).pdb(pdb, style, color, height).custom(kind, payload)`. Every call returns a fresh value. Text accepts simple markdown.
 
 ## Document knobs
 `.withVersion`, `.withSource(Path)`, `.withLogo(svg)`, `.withFootnote`, `.withLayout(DocumentLayout.HorizontalTabs | VerticalCards)` — or shorthand `.verticalNavigator`.
@@ -21,6 +21,9 @@ JVM: `import trail.reporting.*, trail.reporting.dsl.*, trail.reporting.schema.*`
 
 ## Tables
 `TableSpec(Seq(StringColumn | NumberColumn | IntegerColumn | BoolColumn))` — column-major, `nulls: Set[Int]` marks missing rows. `SaddleAdapter.numberColumn/boolColumn` adapt Saddle `Series`.
+
+## Images
+`.image(path)` / `.image(bytes, mimeType, alt)` (JVM) or `.image(base64, mimeType, alt)` (browser) embeds a raster image (PNG, JPEG, …) as a base64 `data:` URI `<img>` — for figures you already have as pixels, in contrast to `.plot`, which embeds vector SVG. `mimeType` defaults to `image/png`.
 
 ## Emit
 `Report.write(doc, Paths.get("report.html"))` — single file, opens offline. `Report.render(doc, out)` streams to any `OutputStream`.

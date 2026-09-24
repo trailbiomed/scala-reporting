@@ -44,6 +44,11 @@ object dsl {
   def pdb(content: String): DataItem =
     pdb(content, PdbStyle.Cartoon, PdbColor.SsSuccession, 480, "white")
 
+  def image(base64: String): DataItem                   = image(base64, "image/png", "")
+  def image(base64: String, mimeType: String): DataItem = image(base64, mimeType, "")
+  def image(base64: String, mimeType: String, alt: String): DataItem =
+    DataItem.ImageItem(mimeType, base64, alt)
+
   /** Client-defined widget. `kind` selects a renderer registered via
     * `trail.reporting.browser.mount(..., customRenderers = ...)`; `payload` is arbitrary
     * text (typically JSON) that the renderer parses. */
@@ -102,6 +107,9 @@ object dsl {
         height:     Int      = 480,
         background: String   = "white"
     ): Item = i.add(DataItem.PdbItem(content, style, color, height, background))
+
+    def image(base64: String, mimeType: String = "image/png", alt: String = ""): Item =
+      i.add(DataItem.ImageItem(mimeType, base64, alt))
 
     def custom(kind: String, payload: String): Item = i.add(DataItem.CustomItem(kind, payload))
   }

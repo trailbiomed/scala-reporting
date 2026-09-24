@@ -48,6 +48,7 @@ enum DataItem {
   case CodeItem(language: String, source: String)
   case TableItem(table: TableSpec)
   case PlotItem(svg: String)
+  case ImageItem(mimeType: String, base64: String, alt: String)
   case PdbItem(pdb: String, style: PdbStyle, color: PdbColor, height: Int, background: String)
   case CustomItem(kind: String, payload: String)
 }

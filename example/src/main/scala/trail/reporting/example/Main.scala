@@ -44,6 +44,8 @@ object Main {
         par.xlab("x").ylab("y").main("sin / cos")
       )
 
+    val plotPng = pngToByteArray(plotBuild, 800)
+
     val sourceCandidate = Paths.get(
       sys.props.getOrElse("user.dir", "."),
       "example/src/main/scala/trail/reporting/example/Main.scala"
@@ -129,6 +131,21 @@ object Main {
           .withItemMenu(PageItemMenu.Hidden)
           .withDescription(
             "Plots are rendered on the JVM at build time (nspl-awt) and embedded as SVG in the HTML."
+          )
+      )
+      .page(
+        page("image", "Image",
+          item("trig-png", "Trigonometric series as PNG")
+            .text(
+              "The same nspl figure, but rasterised to **PNG** on the JVM and embedded as a " +
+                "base64 `data:` URI via `.image(bytes, \"image/png\")` — a raster `<img>` rather than " +
+                "the inline SVG used on the Plots page."
+            )
+            .image(plotPng, "image/png", "sin / cos rendered as a PNG raster")
+        ).withName("Section 06")
+          .withTags("kind" -> "image", "format" -> "png")
+          .withDescription(
+            "A raster PNG embedded as a base64 data URI, in contrast to the vector SVG on the Plots page."
           )
       )
       .page(

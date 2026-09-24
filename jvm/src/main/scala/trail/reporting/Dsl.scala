@@ -1,6 +1,7 @@
 package trail.reporting
 
 import java.nio.file.Path
+import java.util.Base64
 import org.saddle.Frame
 import trail.reporting.schema.*
 
@@ -57,6 +58,16 @@ object dsl {
   def plot[K <: org.nspl.Renderable[K]](build: org.nspl.Build[K])(implicit
       r: org.nspl.Renderer[K, org.nspl.JavaRC]
   ): DataItem = Plot(build)
+
+  def image(path: Path): DataItem = image(path, "")
+
+  def image(path: Path, alt: String): DataItem = {
+    val sf = Report.sourceFromPath(path)
+    DataItem.ImageItem(sf.mimeType, sf.contentBase64, alt)
+  }
+
+  def image(bytes: Array[Byte], mimeType: String, alt: String): DataItem =
+    DataItem.ImageItem(mimeType, Base64.getEncoder.encodeToString(bytes), alt)
 
   extension (doc: Document) {
     def withVersion(v: String): Document     = doc.copy(version = Some(v))
@@ -121,5 +132,13 @@ object dsl {
     def plot[K <: org.nspl.Renderable[K]](build: org.nspl.Build[K], width: Int = 800)(implicit
         r: org.nspl.Renderer[K, org.nspl.JavaRC]
     ): Item = i.add(Plot(build, width))
+
+    def image(path: Path, alt: String = ""): Item = {
+      val sf = Report.sourceFromPath(path)
+      i.add(DataItem.ImageItem(sf.mimeType, sf.contentBase64, alt))
+    }
+
+    def image(bytes: Array[Byte], mimeType: String, alt: String): Item =
+      i.add(DataItem.ImageItem(mimeType, Base64.getEncoder.encodeToString(bytes), alt))
   }
 }

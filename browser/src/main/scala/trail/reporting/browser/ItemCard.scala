@@ -33,6 +33,7 @@ object ItemCard {
     case DataItem.CodeItem(lang, source)   => renderers.CodeRenderer(lang, source)
     case DataItem.TableItem(table)         => renderers.TableRenderer(table)
     case DataItem.PlotItem(svg)            => renderers.PlotRenderer(svg)
+    case image: DataItem.ImageItem         => renderers.ImageRenderer(image)
     case pdb: DataItem.PdbItem             => renderers.PdbRenderer(pdb)
     case DataItem.CustomItem(kind, payload) =>
       app.customRenderers.get(kind) match {

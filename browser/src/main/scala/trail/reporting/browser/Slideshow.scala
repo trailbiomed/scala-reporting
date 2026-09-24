@@ -286,6 +286,7 @@ object Slideshow {
         slideTable(table)
       )
     case DataItem.PlotItem(svg)             => slidePlot(svg)
+    case image: DataItem.ImageItem          => slideImage(image)
     case pdb: DataItem.PdbItem              => renderers.PdbRenderer(pdb)
     case DataItem.CustomItem(kind, payload) =>
       customRenderers.get(kind) match {
@@ -412,6 +413,9 @@ object Slideshow {
 
   private def slidePlot(svg: String): HtmlElement =
     renderers.PlotRenderer(svg, maxHeight = "60vh")
+
+  private def slideImage(item: DataItem.ImageItem): HtmlElement =
+    renderers.ImageRenderer(item, maxHeight = "60vh")
 
   private def slideTable(spec: TableSpec): HtmlElement =
     tableTag(
