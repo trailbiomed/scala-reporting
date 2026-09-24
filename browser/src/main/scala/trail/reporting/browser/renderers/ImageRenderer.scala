@@ -20,8 +20,8 @@ object ImageRenderer {
         alt := item.alt,
         css.raw("width", "100%") ++
           css.raw("height", "auto") ++
-          css.raw("max-width", "100%") ++
           css.raw("max-height", maxHeight) ++
+          css.raw("object-fit", "contain") ++
           css.raw("display", "block") ++
           css.raw("margin", "0 auto")
       )
