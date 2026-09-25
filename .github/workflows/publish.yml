@@ -27,16 +27,6 @@ jobs:
       - name: Show derived version
         run: sbt 'show ThisBuild / version'
 
-      - name: Publish to Maven Central
-        env:
-          PGP_PASSPHRASE:    ${{ secrets.PGP_PASSPHRASE }}
-          PGP_SECRET:        ${{ secrets.PGP_SECRET }}
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: sbt -J-Xmx3g ci-release
-
       - name: Publish to GitHub Packages
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -48,3 +38,29 @@ jobs:
             'sharedJS/publish' \
             'jvm/publish' \
             'browser/publish'
+
+      - name: Publish to GitLab Packages
+        env:
+          GITHUB_ACTOR:             ${{ github.actor }}
+          GITHUB_TOKEN:             ${{ secrets.GITHUB_TOKEN }}
+          GITLAB_DEPLOY_TOKEN:      ${{ secrets.GITLAB_DEPLOY_TOKEN }}
+          GITLAB_DEPLOY_TOKEN_USER: ${{ secrets.GITLAB_DEPLOY_TOKEN_USER }}
+        run: |
+          sbt -J-Xmx3g \
+            'set ThisBuild / publishTo := Some("gitlab" at "https://gitlab.com/api/v4/projects/${{ vars.GITLAB_PROJECT_ID }}/packages/maven")' \
+            'sharedJVM/publish' \
+            'sharedJS/publish' \
+            'jvm/publish' \
+            'browser/publish'
+
+      # Maven Central last: it's the flakiest target, so publish GH Packages and
+      # GitLab first — a Central failure then can't leave those two unpublished.
+      - name: Publish to Maven Central
+        env:
+          PGP_PASSPHRASE:    ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET:        ${{ secrets.PGP_SECRET }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: sbt -J-Xmx3g ci-release

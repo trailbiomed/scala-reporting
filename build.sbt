@@ -44,6 +44,18 @@ ThisBuild / credentials += Credentials(
   sys.env.getOrElse("GITHUB_TOKEN", "")
 )
 
+ThisBuild / credentials ++= {
+  for {
+    user  <- sys.env.get("GITLAB_DEPLOY_TOKEN_USER")
+    token <- sys.env.get("GITLAB_DEPLOY_TOKEN")
+  } yield Credentials(
+    "GitLab Packages Registry",
+    "gitlab.com",
+    user,
+    token
+  )
+}.toSeq
+
 val jsoniterVersion = "2.30.4"
 val laminarVersion  = "17.1.0"
 val nsplVersion     = "0.18.0"
