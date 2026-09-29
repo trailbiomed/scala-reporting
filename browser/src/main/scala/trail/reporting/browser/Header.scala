@@ -4,6 +4,9 @@ import com.raquo.laminar.api.L.{Mod as _, Button as _, *}
 import lui.*
 import lui.components.*
 import lui.style.*
+import org.scalajs.dom
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import trail.reporting.schema.Codecs.given
 import trail.reporting.schema.SourceFile
 
 object Header {
@@ -38,6 +41,7 @@ object Header {
         stack.row(spacing.md) ++ css.alignItems("center"),
         span(typo.hint, child.text <-- app.docVar.signal.map(_.createdAt)),
         slideshowButton(app),
+        exportJsonButton(app),
         child.maybe <-- app.docVar.signal.map(_.source.map(downloadButton)),
         ThemePicker()
       )
@@ -69,6 +73,33 @@ object Header {
       Button.size    := Button.Size.Small,
       Button.click   --> app.openSlideshowBus.writer
     ).root
+
+  private def exportJsonButton(app: App): HtmlElement = {
+    val btn = Button(
+      Button.label   := "Export JSON",
+      Button.variant := Button.Variant.Secondary,
+      Button.size    := Button.Size.Small
+    )
+    btn.root.amend(
+      btn.clicks --> Observer[Unit] { _ =>
+        Downloads.fromText(reportJson(app), jsonFilename(app.docVar.now().title), "application/json")
+      }
+    )
+    btn.root
+  }
+
+  private def reportJson(app: App): String =
+    dom.document.getElementById("trail-report-data") match {
+      case null => writeToString(app.docVar.now(), WriterConfig.withIndentionStep(2))
+      case node => node.textContent.replace("<\\/", "</")
+    }
+
+  private def jsonFilename(title: String): String = {
+    val slug = title.trim.toLowerCase
+      .replaceAll("[^a-z0-9]+", "-")
+      .replaceAll("(^-+|-+$)", "")
+    if (slug.isEmpty) "report.json" else s"$slug.json"
+  }
 
   private def downloadButton(sf: SourceFile): HtmlElement = {
     val btn = Button(
