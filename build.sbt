@@ -58,7 +58,7 @@ ThisBuild / credentials ++= {
 
 val jsoniterVersion = "2.30.4"
 val laminarVersion  = "17.1.0"
-val nsplVersion     = "0.18.0"
+val nsplVersion     = "0.19.0"
 val saddleVersion   = "4.0.0-M14"
 val luiVersion      = "0.6.0"
 
