@@ -29,6 +29,13 @@ object dsl {
   def page(id: String, title: String, items: Item*): Page =
     Page(id, title, items)
 
+  def pageHero(eyebrow: String = "", title: String = "", lead: String = ""): PageHero =
+    PageHero(
+      eyebrow = Option(eyebrow).filter(_.nonEmpty),
+      title   = Option(title).filter(_.nonEmpty),
+      lead    = Option(lead).filter(_.nonEmpty)
+    )
+
   def item(id: String, title: String, data: DataItem*): Item =
     Item(id, title, data)
 
@@ -107,6 +114,26 @@ object dsl {
       p.copy(tags = p.tags :+ PageTag(name, value))
 
     def withItemMenu(mode: PageItemMenu): Page = p.copy(itemMenu = mode)
+
+    def withHero(h: PageHero): Page = p.copy(hero = Some(h))
+
+    def hero(eyebrow: String = "", title: String = "", lead: String = ""): Page =
+      p.copy(hero = Some(pageHero(eyebrow, title, lead)))
+  }
+
+  extension (h: PageHero) {
+    def withLead(text: String): PageHero = h.copy(lead = Some(text))
+
+    def withMeta(ts: (String, String)*): PageHero =
+      h.copy(meta = h.meta ++ ts.map((k, v) => PageTag(k, v)))
+
+    def withImage(path: Path, alt: String = ""): PageHero = {
+      val sf = Report.sourceFromPath(path)
+      h.copy(image = Some(DataItem.ImageItem(sf.mimeType, sf.contentBase64, alt)))
+    }
+
+    def withImage(bytes: Array[Byte], mimeType: String, alt: String): PageHero =
+      h.copy(image = Some(DataItem.ImageItem(mimeType, Base64.getEncoder.encodeToString(bytes), alt)))
   }
 
   extension (i: Item) {

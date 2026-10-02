@@ -18,7 +18,7 @@ object ItemMenuPopover {
       Popover(
         Popover.open      <--> open,
         Popover.placement := Popover.Placement.Bottom,
-        Popover.trigger(triggerChip(page, open.signal)),
+        Popover.trigger(triggerChip(page, open)),
         Popover.body(
           menuPanel(page.items.toList, app, jumpBus.writer),
           jumpBus.events.mapTo(false) --> open.writer
@@ -27,10 +27,12 @@ object ItemMenuPopover {
     )
   }
 
-  private def triggerChip(page: Page, openSig: Signal[Boolean]): HtmlElement =
+  private def triggerChip(page: Page, open: Var[Boolean]): HtmlElement = {
+    val focused = Var(false)
     div(
+      role     := "button",
       tabIndex := 0,
-      openSig.styled { (t, isOpen) =>
+      Signal.combine(open.signal, focused.signal).styled { case (t, (isOpen, foc)) =>
         val (bg, fg) =
           if (isOpen) (t.brandSoft, t.brand)
           else        (t.surface, t.textMuted)
@@ -42,12 +44,19 @@ object ItemMenuPopover {
           css.cursor("pointer") ++
           css.fontSize(fontSizes.sm) ++
           css.raw("user-select", "none") ++
-          css.transition("background-color", 120)
+          css.transition("background-color", 120) ++
+          A11y.focusRing(t, foc)
       },
+      onFocus.mapTo(true) --> focused.writer,
+      onBlur.mapTo(false) --> focused.writer,
+      onKeyDown
+        .filter(e => A11y.activationKeys.contains(e.key))
+        .map(e => e.preventDefault()) --> Observer[Unit](_ => open.update(!_)),
       span("Items"),
       span(themed(t => css.color(t.textSubtle) ++ css.fontSize(fontSizes.xs)), s"${page.items.size}"),
       span(themed(t => css.color(t.textSubtle)), "▾")
     )
+  }
 
   private def menuPanel(items: List[Item], app: App, jumpObs: Observer[String]): HtmlElement =
     div(
@@ -62,31 +71,41 @@ object ItemMenuPopover {
 
   private def menuEntry(item: Item, index: Int, app: App, jumpObs: Observer[String]): HtmlElement = {
     val hovered = Var(false)
+    val focused = Var(false)
+    val activeSig = app.activeItemVar.signal.map(_.contains(item.id)).distinct
+    val activate = Observer[Unit] { _ =>
+      app.activeItemVar.set(Some(item.id))
+      jumpObs.onNext(item.id)
+      val node = dom.document.getElementById(s"item-${item.id}")
+      if (node != null) node.scrollIntoView(true)
+    }
     div(
-      Signal.combine(app.activeItemVar.signal, hovered.signal).styled { case (t, (active, h)) =>
-        val selected = active.contains(item.id)
-        val (bg, fg) =
-          if (selected) (t.brandSoft, t.brand)
-          else if (h)   (t.surfaceDim, t.text)
-          else          (Color.transparent, t.text)
-        stack.row(spacing.sm) ++
-          css.padding(Length.px(4), spacing.md) ++
-          css.borderRadius(radius.sm) ++
-          css.background(bg) ++
-          css.color(fg) ++
-          css.cursor("pointer") ++
-          css.raw("user-select", "none") ++
-          css.fontSize(fontSizes.md) ++
-          css.fontWeight(if (selected) FontWeight.Medium else FontWeight.Regular)
+      role     := "button",
+      tabIndex := 0,
+      A11y.ariaCurrent <-- activeSig.map(a => if (a) "true" else null),
+      Signal.combine(app.activeItemVar.signal, hovered.signal, focused.signal).styled {
+        case (t, (active, h, foc)) =>
+          val selected = active.contains(item.id)
+          val (bg, fg) =
+            if (selected) (t.brandSoft, t.brand)
+            else if (h)   (t.surfaceDim, t.text)
+            else          (Color.transparent, t.text)
+          stack.row(spacing.sm) ++
+            css.padding(Length.px(4), spacing.md) ++
+            css.borderRadius(radius.sm) ++
+            css.background(bg) ++
+            css.color(fg) ++
+            css.cursor("pointer") ++
+            css.raw("user-select", "none") ++
+            css.fontSize(fontSizes.md) ++
+            css.fontWeight(if (selected) FontWeight.Medium else FontWeight.Regular) ++
+            A11y.focusRing(t, foc)
       },
       onMouseEnter.mapTo(true)  --> hovered.writer,
       onMouseLeave.mapTo(false) --> hovered.writer,
-      onClick.mapTo(Some(item.id)) --> app.activeItemVar.writer,
-      onClick.mapTo(item.id)      --> jumpObs,
-      onClick.mapTo(s"item-${item.id}") --> Observer[String] { id =>
-        val node = dom.document.getElementById(id)
-        if (node != null) node.scrollIntoView(true)
-      },
+      onFocus.mapTo(true)  --> focused.writer,
+      onBlur.mapTo(false)  --> focused.writer,
+      A11y.activate(activate),
       span(themed(t => css.color(t.textSubtle)), s"${index + 1}."),
       span(item.title)
     )

@@ -290,9 +290,19 @@ object DataTable extends ComponentFactory[DataTable] {
   }
 
   private def headerCell(col: Column, el: DataTable): HtmlElement = {
-    val hovered = Var(false)
+    val hovered  = Var(false)
+    val focused  = Var(false)
     val isActive = el.sortVar.signal.map(_.exists(_._1 == col.name))
+    val sort = Observer[Unit] { _ =>
+      el.sortVar.set(DataTable.nextSort(el.sortVar.now(), col.name))
+    }
     th(
+      A11y.scope := "col",
+      A11y.ariaSort <-- el.sortVar.signal.map {
+        case Some((n, SortDir.Asc))  if n == col.name => "ascending"
+        case Some((n, SortDir.Desc)) if n == col.name => "descending"
+        case _                                        => "none"
+      },
       themed(t =>
         css.padding(Length.zero) ++
           css.textAlign(TextAlign.Left) ++
@@ -305,7 +315,9 @@ object DataTable extends ComponentFactory[DataTable] {
       div(
         stack.col(spacing.xs) ++ css.padding(spacing.md, spacing.lg),
         div(
-          Signal.combine(hovered.signal, isActive).styled { case (t, (h, active)) =>
+          role     := "button",
+          tabIndex := 0,
+          Signal.combine(hovered.signal, isActive, focused.signal).styled { case (t, (h, active, foc)) =>
             val color =
               if (active) t.brand
               else if (h) t.text
@@ -315,14 +327,15 @@ object DataTable extends ComponentFactory[DataTable] {
               css.cursor("pointer") ++
               css.color(color) ++
               css.fontWeight(if (active) FontWeight.SemiBold else FontWeight.Medium) ++
-              css.raw("user-select", "none")
+              css.raw("user-select", "none") ++
+              css.borderRadius(radius.sm) ++
+              A11y.focusRing(t, foc)
           },
           onMouseEnter.mapTo(true)  --> hovered.writer,
           onMouseLeave.mapTo(false) --> hovered.writer,
-          onClick.mapTo(col.name).compose(
-            _.withCurrentValueOf(el.sortVar.signal)
-              .map { case (name, current) => DataTable.nextSort(current, name) }
-          ) --> el.sortVar.writer,
+          onFocus.mapTo(true)  --> focused.writer,
+          onBlur.mapTo(false)  --> focused.writer,
+          A11y.activate(sort),
           span(col.label),
           span(
             themed(_ => css.fontSize(fontSizes.md)),

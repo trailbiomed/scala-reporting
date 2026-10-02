@@ -24,7 +24,16 @@ final case class Page(
     description: Option[String] = None,
     name: Option[String] = None,
     tags: Seq[PageTag] = Seq.empty,
-    itemMenu: PageItemMenu = PageItemMenu.Inline
+    itemMenu: PageItemMenu = PageItemMenu.Inline,
+    hero: Option[PageHero] = None
+)
+
+final case class PageHero(
+    eyebrow: Option[String] = None,
+    title: Option[String] = None,
+    lead: Option[String] = None,
+    meta: Seq[PageTag] = Seq.empty,
+    image: Option[DataItem.ImageItem] = None
 )
 
 final case class PageTag(name: String, value: String)

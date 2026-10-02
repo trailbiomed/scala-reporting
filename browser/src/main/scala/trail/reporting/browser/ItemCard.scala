@@ -14,18 +14,32 @@ object ItemCard {
         stack.col(spacing.lg) ++
           css.padding(spacing.xxl) ++
           css.borderRadius(radius.md) ++
-          css.background(t.surface)
+          css.background(t.surface) ++
+          css.border(Length.px(1), BorderStyle.Solid, t.border)
       ),
       div(
-        stack.row(spacing.md) ++ css.alignItems("baseline"),
-        span(
-          themed(t => css.color(t.textSubtle) ++ css.fontWeight(FontWeight.Regular)),
-          typo.h2,
-          s"${index + 1}."
-        ),
+        stack.row(spacing.md) ++ css.alignItems("center"),
+        sectionBadge(index + 1),
         span(typo.h2, item.title)
       ),
       item.data.map(d => renderData(d, app))
+    )
+
+  private def sectionBadge(n: Int): HtmlElement =
+    span(
+      themed(t =>
+        stack.centerAll ++
+          stack.noShrink ++
+          css.raw("width", "26px") ++
+          css.raw("height", "26px") ++
+          css.borderRadius(radius.sm) ++
+          css.background(t.brandSoft) ++
+          css.color(t.brand) ++
+          css.fontSize(fontSizes.lg) ++
+          css.fontWeight(FontWeight.SemiBold) ++
+          css.raw("font-variant-numeric", "tabular-nums")
+      ),
+      n.toString
     )
 
   private def renderData(d: DataItem, app: App): Modifier[HtmlElement] = d match {

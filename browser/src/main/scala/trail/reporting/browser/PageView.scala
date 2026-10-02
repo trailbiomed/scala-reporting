@@ -8,16 +8,22 @@ import trail.reporting.schema.{Page, PageItemMenu}
 object PageView {
 
   def apply(page: Page, app: App): HtmlElement = {
-    val elems: List[HtmlElement] =
+    val heroEl: List[HtmlElement] =
+      page.hero.map(h => Hero(h, page.title)).toList
+
+    val menu: List[HtmlElement] =
       (page.itemMenu match {
         case PageItemMenu.Popover if page.items.nonEmpty =>
           Some(ItemMenuPopover(page, app))
         case _ => None
-      }).toList ++ page.items.zipWithIndex.map { case (item, idx) => ItemCard(item, idx, app) }.toList
+      }).toList
+
+    val cards: List[HtmlElement] =
+      page.items.zipWithIndex.map { case (item, idx) => ItemCard(item, idx, app) }.toList
 
     div(
       stack.col(spacing.xxl) ++ css.padding(spacing.xxl),
-      elems
+      heroEl ++ menu ++ cards
     )
   }
 }

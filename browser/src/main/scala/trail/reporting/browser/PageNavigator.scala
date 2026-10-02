@@ -35,6 +35,7 @@ object PageNavigator {
 
   private def pageCard(page: Page, app: App): HtmlElement = {
     val hovered   = Var(false)
+    val focused   = Var(false)
     val activeSig = app.activePageVar.signal.map(_ == page.id).distinct
 
     val nameMod: Option[HtmlElement] =
@@ -44,7 +45,10 @@ object PageNavigator {
 
     div(
       dataAttr("page-id") := page.id,
-      Signal.combine(activeSig, hovered.signal).styled { case (t, (active, h)) =>
+      role     := "button",
+      tabIndex := 0,
+      A11y.ariaCurrent <-- activeSig.map(a => if (a) "true" else null),
+      Signal.combine(activeSig, hovered.signal, focused.signal).styled { case (t, (active, h, foc)) =>
         val bg =
           if (active) t.brandSoft
           else if (h) t.surfaceDim
@@ -54,11 +58,14 @@ object PageNavigator {
           css.borderRadius(radius.md) ++
           css.background(bg) ++
           css.cursor("pointer") ++
-          css.transition("background-color", 120)
+          css.transition("background-color", 120) ++
+          A11y.focusRing(t, foc)
       },
       onMouseEnter.mapTo(true)  --> hovered.writer,
       onMouseLeave.mapTo(false) --> hovered.writer,
-      onClick.mapTo(page.id) --> app.activePageVar.writer,
+      onFocus.mapTo(true)  --> focused.writer,
+      onBlur.mapTo(false)  --> focused.writer,
+      A11y.activate(Observer[Unit](_ => app.activePageVar.set(page.id))),
       cardHeader(page, activeSig, nameMod),
       tagsMod,
       child.maybe <-- activeSig.map { active =>
@@ -114,30 +121,40 @@ object PageNavigator {
 
   private def itemRow(item: Item, index: Int, app: App): HtmlElement = {
     val hovered = Var(false)
+    val focused = Var(false)
+    val activeSig = app.activeItemVar.signal.map(_.contains(item.id)).distinct
+    val activate = Observer[Unit] { _ =>
+      app.activeItemVar.set(Some(item.id))
+      val node = dom.document.getElementById(s"item-${item.id}")
+      if (node != null) node.scrollIntoView(true)
+    }
     div(
       dataAttr("item-id") := item.id,
-      Signal.combine(app.activeItemVar.signal, hovered.signal).styled { case (t, (active, h)) =>
-        val selected = active.contains(item.id)
-        val (bg, fg) =
-          if (selected) (t.brandSoft, t.brand)
-          else if (h)   (t.surfaceDim, t.text)
-          else          (Color.transparent, t.textMuted)
-        stack.row(spacing.sm) ++
-          css.padding(Length.px(3), spacing.md) ++
-          css.borderRadius(radius.sm) ++
-          css.background(bg) ++
-          css.color(fg) ++
-          css.cursor("pointer") ++
-          css.fontSize(fontSizes.md) ++
-          css.fontWeight(if (selected) FontWeight.Medium else FontWeight.Regular)
+      role     := "button",
+      tabIndex := 0,
+      A11y.ariaCurrent <-- activeSig.map(a => if (a) "true" else null),
+      Signal.combine(app.activeItemVar.signal, hovered.signal, focused.signal).styled {
+        case (t, (active, h, foc)) =>
+          val selected = active.contains(item.id)
+          val (bg, fg) =
+            if (selected) (t.brandSoft, t.brand)
+            else if (h)   (t.surfaceDim, t.text)
+            else          (Color.transparent, t.textMuted)
+          stack.row(spacing.sm) ++
+            css.padding(Length.px(3), spacing.md) ++
+            css.borderRadius(radius.sm) ++
+            css.background(bg) ++
+            css.color(fg) ++
+            css.cursor("pointer") ++
+            css.fontSize(fontSizes.md) ++
+            css.fontWeight(if (selected) FontWeight.Medium else FontWeight.Regular) ++
+            A11y.focusRing(t, foc)
       },
       onMouseEnter.mapTo(true)  --> hovered.writer,
       onMouseLeave.mapTo(false) --> hovered.writer,
-      onClick.stopPropagation.mapTo(Some(item.id)) --> app.activeItemVar.writer,
-      onClick.stopPropagation.mapTo(s"item-${item.id}") --> Observer[String] { id =>
-        val node = dom.document.getElementById(id)
-        if (node != null) node.scrollIntoView(true)
-      },
+      onFocus.mapTo(true)  --> focused.writer,
+      onBlur.mapTo(false)  --> focused.writer,
+      A11y.activate(activate, stopPropagation = true),
       span(themed(t => css.color(t.textSubtle)), s"${index + 1}."),
       span(item.title)
     )

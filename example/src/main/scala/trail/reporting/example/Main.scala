@@ -115,6 +115,18 @@ object Main {
             .text("Same Score column, but constructed via the .frame extension on a Frame[Int, String, Double].")
             .frame(metrics)
         ).withName("Section 01")
+          .withHero(
+            pageHero(
+              eyebrow = "Sample report",
+              title   = "A narrative overview of the cohort",
+              lead    = "A self-contained HTML report: data is embedded as JSON and rendered by an " +
+                "inlined Scala.js bundle. This page walks through text, tables, and Saddle-sourced columns."
+            ).withMeta(
+              "Rows"        -> n.toString,
+              "Version"     -> "0.2.0",
+              "Prepared by" -> "Trail Biomed"
+            )
+          )
           .withTags("rows" -> n.toString, "kind" -> "tables")
           .withDescription(
             "Introduces the report itself and a synthetic 240-row cohort. Skim the intro, " +
@@ -143,6 +155,14 @@ object Main {
             )
             .image(plotPng, "image/png", "sin / cos rendered as a PNG raster")
         ).withName("Section 06")
+          .withHero(
+            pageHero(
+              eyebrow = "Figure",
+              title   = "Raster image embedding",
+              lead    = "A hero can carry a banner image. Here the nspl figure is rasterised to PNG " +
+                "and embedded as a base64 data URI."
+            ).withImage(plotPng, "image/png", "sin / cos rendered as a PNG raster")
+          )
           .withTags("kind" -> "image", "format" -> "png")
           .withDescription(
             "A raster PNG embedded as a base64 data URI, in contrast to the vector SVG on the Plots page."
