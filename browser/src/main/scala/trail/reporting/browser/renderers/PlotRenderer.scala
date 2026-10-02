@@ -23,7 +23,8 @@ object PlotRenderer {
         css.raw("width", "100%") ++
         css.raw("max-width", "100%") ++
         css.raw("overflow", "hidden") ++
-        css.raw("text-align", "center")
+        css.raw("text-align", "center") ++
+        css.raw("background", "#ffffff")
     )
     host.amend(
       onMountCallback { ctx =>
