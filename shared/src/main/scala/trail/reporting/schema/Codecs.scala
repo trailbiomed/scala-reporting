@@ -10,5 +10,7 @@ object Codecs {
       .withDiscriminatorFieldName(Some("type"))
       .withTransientEmpty(false)
       .withTransientNone(false)
+      .withSetMaxInsertNumber(Int.MaxValue)
+      .withMapMaxInsertNumber(Int.MaxValue)
   )
 }
